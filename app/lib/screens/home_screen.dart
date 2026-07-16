@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/auth_provider.dart';
 import '../providers/app_provider.dart';
 import '../providers/favorite_provider.dart';
 import '../services/api_service.dart';
@@ -13,12 +12,12 @@ import 'category_apps_screen.dart';
 import 'favorites_screen.dart';
 import 'recently_viewed_screen.dart';
 import 'notifications_screen.dart';
-import 'login_screen.dart';
 import '../widgets/app_card.dart';
 import '../widgets/category_chip.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final bool isTab;
+  const HomeScreen({super.key, this.isTab = false});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -31,22 +30,26 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     context.read<AppProvider>().loadHomeData();
+    context.read<AppProvider>().loadRecentlyViewed();
     _loadCategories();
-    if (context.read<AuthProvider>().isLoggedIn) {
-      context.read<FavoriteProvider>().loadFavorites();
-    }
+    context.read<FavoriteProvider>().loadFavorites();
   }
 
   Future<void> _loadCategories() async {
     try {
       final res = await ApiService().get('/categories');
-      if (mounted) setState(() => _categories = (res as List).map((c) => CategoryModel.fromJson(c)).toList());
+      if (mounted) {
+        setState(
+          () => _categories = (res as List)
+              .map((c) => CategoryModel.fromJson(c))
+              .toList(),
+        );
+      }
     } catch (_) {}
   }
 
   @override
   Widget build(BuildContext context) {
-    final auth = context.watch<AuthProvider>();
     final appProv = context.watch<AppProvider>();
     final favProv = context.watch<FavoriteProvider>();
 
@@ -56,39 +59,18 @@ class _HomeScreenState extends State<HomeScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.search),
-            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SearchScreen())),
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const SearchScreen()),
+            ),
           ),
           IconButton(
             icon: const Icon(Icons.notifications_outlined),
-            onPressed: () {
-              if (auth.isLoggedIn) {
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationsScreen()));
-              } else {
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
-              }
-            },
-          ),
-          if (!auth.isLoggedIn)
-            IconButton(
-              icon: const Icon(Icons.person_outline),
-              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const LoginScreen())),
-            )
-          else
-            PopupMenuButton(
-              icon: CircleAvatar(
-                radius: 14,
-                backgroundColor: AppTheme.primary.withValues(alpha: 0.1),
-                child: Text(auth.user!.name[0].toUpperCase(), style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppTheme.primary)),
-              ),
-              itemBuilder: (_) => [
-                const PopupMenuItem(value: 'logout', child: Text('Logout')),
-              ],
-              onSelected: (v) {
-                if (v == 'logout') {
-                  auth.logout();
-                }
-              },
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const NotificationsScreen()),
             ),
+          ),
         ],
       ),
       body: RefreshIndicator(
@@ -101,7 +83,26 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (appProv.dailyFeatured != null) _buildDailyFeatured(appProv.dailyFeatured!),
+              if (appProv.error != null) ...[
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: AppTheme.error.withValues(alpha: 0.08),
+                    border: Border.all(
+                      color: AppTheme.error.withValues(alpha: 0.25),
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    appProv.error!,
+                    style: const TextStyle(color: AppTheme.error),
+                  ),
+                ),
+              ],
+              if (appProv.dailyFeatured != null)
+                _buildDailyFeatured(appProv.dailyFeatured!),
               const SizedBox(height: 20),
               _buildSectionHeader('Categories', () {}),
               const SizedBox(height: 12),
@@ -115,63 +116,29 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(height: 12),
               _buildAppList(appProv.newApps, favProv),
               const SizedBox(height: 24),
-              if (auth.isLoggedIn) ...[
-                _buildSectionHeader('Recently Viewed', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RecentlyViewedScreen()))),
-                const SizedBox(height: 12),
-                _buildAppList(appProv.recentlyViewed.take(5).toList(), favProv),
-                const SizedBox(height: 24),
-                _buildSectionHeader('Favorites', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const FavoritesScreen()))),
-                const SizedBox(height: 12),
-                _buildAppList(favProv.favorites.take(5).toList(), favProv),
-              ],
+              _buildSectionHeader(
+                'Recently Viewed',
+                () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const RecentlyViewedScreen(),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              _buildAppList(appProv.recentlyViewed.take(5).toList(), favProv),
+              const SizedBox(height: 24),
+              _buildSectionHeader(
+                'Favorites',
+                () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const FavoritesScreen()),
+                ),
+              ),
+              const SizedBox(height: 12),
+              _buildAppList(favProv.favorites.take(5).toList(), favProv),
             ],
           ),
-        ),
-      ),
-      bottomNavigationBar: auth.isLoggedIn ? _buildBottomNav() : null,
-    );
-  }
-
-  Widget _buildBottomNav() {
-    final auth = context.watch<AuthProvider>();
-    return Container(
-      decoration: const BoxDecoration(
-        border: Border(top: BorderSide(color: AppTheme.border)),
-        color: Colors.white,
-      ),
-      child: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _navItem(Icons.home, 'Home', () {}),
-              _navItem(Icons.favorite_outline, 'Favorites', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const FavoritesScreen()))),
-              _navItem(Icons.history, 'Recent', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RecentlyViewedScreen()))),
-              _navItem(Icons.notifications_outlined, 'Alerts', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationsScreen()))),
-              _navItem(Icons.person_outline, auth.user?.name ?? 'Profile', () {
-                auth.logout();
-                Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
-              }),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _navItem(IconData icon, String label, VoidCallback onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 22, color: AppTheme.textSecondary),
-            const SizedBox(height: 2),
-            Text(label, style: const TextStyle(fontSize: 10, color: AppTheme.textSecondary)),
-          ],
         ),
       ),
     );
@@ -179,19 +146,31 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildDailyFeatured(AppModel app) {
     return GestureDetector(
-      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => AppDetailScreen(appId: app.id))),
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => AppDetailScreen(appId: app.id)),
+      ),
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          gradient: const LinearGradient(colors: [AppTheme.primary, AppTheme.primaryDark]),
+          gradient: const LinearGradient(
+            colors: [AppTheme.primary, AppTheme.primaryDark],
+          ),
           borderRadius: BorderRadius.circular(16),
         ),
         child: Row(
           children: [
             ClipRRect(
               borderRadius: BorderRadius.circular(12),
-              child: Image.network(app.iconUrl, width: 64, height: 64, fit: BoxFit.cover),
+              child: Container(
+                width: 64,
+                height: 64,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.2),
+                ),
+                child: const Icon(Icons.explore, color: Colors.white, size: 32),
+              ),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -199,17 +178,42 @@ class _HomeScreenState extends State<HomeScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 3,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.white.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(6),
                     ),
-                    child: const Text("Today's Pick", style: TextStyle(fontSize: 10, color: Colors.white, fontWeight: FontWeight.w600)),
+                    child: const Text(
+                      "Today's Pick",
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                   ),
                   const SizedBox(height: 6),
-                  Text(app.name, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+                  Text(
+                    app.curiosityTitle,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
                   const SizedBox(height: 2),
-                  Text(app.shortDescription, style: TextStyle(fontSize: 12, color: Colors.white.withValues(alpha: 0.8)), maxLines: 1, overflow: TextOverflow.ellipsis),
+                  Text(
+                    app.shortDescription,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.white.withValues(alpha: 0.8),
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ],
               ),
             ),
@@ -224,11 +228,25 @@ class _HomeScreenState extends State<HomeScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.text)),
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: AppTheme.text,
+          ),
+        ),
         if (title != 'Categories')
           GestureDetector(
             onTap: onSeeAll,
-            child: const Text('See all', style: TextStyle(fontSize: 13, color: AppTheme.primary, fontWeight: FontWeight.w500)),
+            child: const Text(
+              'See all',
+              style: TextStyle(
+                fontSize: 13,
+                color: AppTheme.primary,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
           ),
       ],
     );
@@ -244,7 +262,12 @@ class _HomeScreenState extends State<HomeScreen> {
         separatorBuilder: (_, __) => const SizedBox(width: 10),
         itemBuilder: (_, i) => CategoryChip(
           category: _categories[i],
-          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => CategoryAppsScreen(category: _categories[i]))),
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => CategoryAppsScreen(category: _categories[i]),
+            ),
+          ),
         ),
       ),
     );
@@ -254,19 +277,33 @@ class _HomeScreenState extends State<HomeScreen> {
     if (apps.isEmpty) {
       return const Padding(
         padding: EdgeInsets.symmetric(vertical: 24),
-        child: Center(child: Text('No apps yet', style: TextStyle(color: AppTheme.textSecondary))),
+        child: Center(
+          child: Text(
+            'No apps yet',
+            style: TextStyle(color: AppTheme.textSecondary),
+          ),
+        ),
       );
     }
     return Column(
-      children: apps.map((app) => Padding(
-        padding: const EdgeInsets.only(bottom: 8),
-        child: AppCard(
-          app: app,
-          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => AppDetailScreen(appId: app.id))),
-          onFavorite: context.read<AuthProvider>().isLoggedIn ? () => favProv.toggle(app.id) : null,
-          isFavorited: favProv.isFavorited(app.id),
-        ),
-      )).toList(),
+      children: apps
+          .map(
+            (app) => Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: AppCard(
+                app: app,
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => AppDetailScreen(appId: app.id),
+                  ),
+                ),
+                onFavorite: () => favProv.toggle(app.id),
+                isFavorited: favProv.isFavorited(app.id),
+              ),
+            ),
+          )
+          .toList(),
     );
   }
 }

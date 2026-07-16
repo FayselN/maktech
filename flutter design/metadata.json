@@ -1,0 +1,6 @@
+{
+  "name": "Mak Tech",
+  "description": "Discover and browse carefully curated high-quality apps including AI tools, productivity, education, utilities, photo editing, finance, and more.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

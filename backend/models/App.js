@@ -8,6 +8,8 @@ const screenshotSchema = new mongoose.Schema({
 const appSchema = new mongoose.Schema({
   name: { type: String, required: true, trim: true },
   slug: { type: String, required: true, unique: true, lowercase: true, trim: true },
+  searchCode: { type: String, required: true, unique: true, lowercase: true, trim: true, index: true },
+  curiosityTitle: { type: String, required: true, trim: true },
   shortDescription: { type: String, required: true, maxlength: 200 },
   longDescription: { type: String, required: true },
   developerName: { type: String, trim: true },
@@ -29,8 +31,8 @@ const appSchema = new mongoose.Schema({
   isNewApp: { type: Boolean, default: true },
   viewCount: { type: Number, default: 0 },
   favoriteCount: { type: Number, default: 0 },
-  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-  updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'Admin' },
+  updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'Admin' },
 }, { timestamps: true });
 
 appSchema.index({ name: 'text', shortDescription: 'text' });

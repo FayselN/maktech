@@ -1,36 +1,23 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
 import '../config/api_config.dart';
+import '../utils/device_utils.dart';
 
 class ApiService {
   final http.Client _client = http.Client();
-  String? _token;
+  String? _deviceId;
 
   static final ApiService _instance = ApiService._();
   factory ApiService() => _instance;
   ApiService._();
 
-  Future<void> loadToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    _token = prefs.getString('token');
+  Future<void> init() async {
+    _deviceId = await DeviceUtils.getDeviceId();
   }
-
-  Future<void> setToken(String? token) async {
-    _token = token;
-    final prefs = await SharedPreferences.getInstance();
-    if (token != null) {
-      await prefs.setString('token', token);
-    } else {
-      await prefs.remove('token');
-    }
-  }
-
-  String? get token => _token;
 
   Map<String, String> get _headers {
     final headers = <String, String>{'Content-Type': 'application/json'};
-    if (_token != null) headers['Authorization'] = 'Bearer $_token';
+    if (_deviceId != null) headers['X-Device-Id'] = _deviceId!;
     return headers;
   }
 

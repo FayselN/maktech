@@ -2,6 +2,8 @@ class AppModel {
   final String id;
   final String name;
   final String slug;
+  final String searchCode;
+  final String curiosityTitle;
   final String shortDescription;
   final String longDescription;
   final String? developerName;
@@ -27,6 +29,8 @@ class AppModel {
     required this.id,
     required this.name,
     required this.slug,
+    required this.searchCode,
+    required this.curiosityTitle,
     required this.shortDescription,
     required this.longDescription,
     this.developerName,
@@ -54,6 +58,8 @@ class AppModel {
       id: json['_id'] as String,
       name: json['name'] as String,
       slug: json['slug'] as String,
+      searchCode: json['searchCode'] as String? ?? '',
+      curiosityTitle: json['curiosityTitle'] as String? ?? json['name'] as String,
       shortDescription: json['shortDescription'] as String,
       longDescription: json['longDescription'] as String? ?? '',
       developerName: json['developerName'] as String?,

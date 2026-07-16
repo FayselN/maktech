@@ -22,7 +22,9 @@ class ReviewModel {
     return ReviewModel(
       id: json['_id'] as String,
       userId: user?['_id'] as String?,
-      userName: user?['name'] as String?,
+      // Reviews are tied to an anonymous device in the current API, rather
+      // than to an account. Keep the UI useful for both API shapes.
+      userName: user?['name'] as String? ?? 'Mak Tech user',
       userImage: user?['profileImage'] as String?,
       rating: json['rating'] as int,
       comment: json['comment'] as String? ?? '',

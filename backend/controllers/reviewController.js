@@ -21,7 +21,6 @@ const listByApp = async (req, res, next) => {
 
     const [reviews, total] = await Promise.all([
       Review.find({ appId: req.params.appId })
-        .populate('userId', 'name profileImage')
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(parseInt(limit)),
@@ -51,14 +50,14 @@ const create = async (req, res, next) => {
       return res.status(404).json({ message: 'App not found' });
     }
 
-    const existing = await Review.findOne({ appId: req.params.appId, userId: req.user._id });
+    const existing = await Review.findOne({ appId: req.params.appId, deviceId: req.deviceId });
     if (existing) {
       return res.status(409).json({ message: 'You have already reviewed this app' });
     }
 
     const review = await Review.create({
       appId: req.params.appId,
-      userId: req.user._id,
+      deviceId: req.deviceId,
       rating,
       comment,
     });
@@ -76,7 +75,7 @@ const update = async (req, res, next) => {
     const { rating, comment } = req.body;
 
     const review = await Review.findOneAndUpdate(
-      { _id: req.params.reviewId, userId: req.user._id },
+      { _id: req.params.reviewId, deviceId: req.deviceId },
       { rating, comment },
       { new: true, runValidators: true }
     );
@@ -97,7 +96,7 @@ const remove = async (req, res, next) => {
   try {
     const review = await Review.findOneAndDelete({
       _id: req.params.reviewId,
-      userId: req.user._id,
+      deviceId: req.deviceId,
     });
 
     if (!review) {

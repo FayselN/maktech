@@ -1,10 +1,10 @@
 const express = require('express');
 const { list, add, remove, check } = require('../controllers/favoriteController');
-const authMiddleware = require('../middleware/authMiddleware');
+const deviceMiddleware = require('../middleware/deviceMiddleware');
 
 const router = express.Router();
 
-router.use(authMiddleware);
+router.use(deviceMiddleware);
 
 router.get('/', list);
 router.get('/:appId/check', check);

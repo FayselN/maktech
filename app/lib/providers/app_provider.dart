@@ -14,6 +14,7 @@ class AppProvider extends ChangeNotifier {
   AppModel? _selectedApp;
   bool _loading = false;
   String _searchQuery = '';
+  String? _error;
 
   List<AppModel> get trending => _trending;
   List<AppModel> get newApps => _newApps;
@@ -24,9 +25,11 @@ class AppProvider extends ChangeNotifier {
   AppModel? get selectedApp => _selectedApp;
   bool get loading => _loading;
   String get searchQuery => _searchQuery;
+  String? get error => _error;
 
   Future<void> loadHomeData() async {
     _loading = true;
+    _error = null;
     notifyListeners();
     try {
       final results = await Future.wait([
@@ -34,10 +37,14 @@ class AppProvider extends ChangeNotifier {
         _api.get('/apps/new'),
         _api.get('/apps/daily-featured'),
       ]);
-      _trending = (results[0] as List).map((a) => AppModel.fromJson(a)).toList();
+      _trending = (results[0] as List)
+          .map((a) => AppModel.fromJson(a))
+          .toList();
       _newApps = (results[1] as List).map((a) => AppModel.fromJson(a)).toList();
-      _dailyFeatured = AppModel.fromJson(results[2]);
-    } catch (_) {}
+      if (results[2] != null) _dailyFeatured = AppModel.fromJson(results[2]);
+    } catch (error) {
+      _error = 'Could not load apps: $error';
+    }
     _loading = false;
     notifyListeners();
   }
@@ -65,7 +72,9 @@ class AppProvider extends ChangeNotifier {
     notifyListeners();
     try {
       final res = await _api.get('/apps', queryParams: {'search': query});
-      _searchResults = (res['apps'] as List).map((a) => AppModel.fromJson(a)).toList();
+      _searchResults = (res['apps'] as List)
+          .map((a) => AppModel.fromJson(a))
+          .toList();
     } catch (_) {}
     _loading = false;
     notifyListeners();
@@ -76,7 +85,9 @@ class AppProvider extends ChangeNotifier {
     notifyListeners();
     try {
       final res = await _api.get('/apps', queryParams: {'category': slug});
-      _categoryApps = (res['apps'] as List).map((a) => AppModel.fromJson(a)).toList();
+      _categoryApps = (res['apps'] as List)
+          .map((a) => AppModel.fromJson(a))
+          .toList();
     } catch (_) {}
     _loading = false;
     notifyListeners();

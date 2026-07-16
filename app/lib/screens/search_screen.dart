@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/app_provider.dart';
 import '../providers/favorite_provider.dart';
-import '../providers/auth_provider.dart';
 import '../theme/app_theme.dart';
 import 'app_detail_screen.dart';
 import '../widgets/app_card.dart';
 
 class SearchScreen extends StatefulWidget {
-  const SearchScreen({super.key});
+  final bool autofocus;
+  const SearchScreen({super.key, this.autofocus = true});
 
   @override
   State<SearchScreen> createState() => _SearchScreenState();
@@ -32,9 +32,11 @@ class _SearchScreenState extends State<SearchScreen> {
       appBar: AppBar(
         title: TextField(
           controller: _searchController,
-          autofocus: true,
+          autofocus: widget.autofocus,
+          style: const TextStyle(color: Colors.white),
           decoration: const InputDecoration(
             hintText: 'Search apps...',
+            hintStyle: TextStyle(color: Colors.white54),
             border: InputBorder.none,
             filled: false,
           ),
@@ -52,23 +54,42 @@ class _SearchScreenState extends State<SearchScreen> {
         ],
       ),
       body: _searchController.text.isEmpty
-        ? const Center(child: Text('Search for apps by name or description', style: TextStyle(color: AppTheme.textSecondary)))
-        : appProv.loading
+          ? const Center(
+              child: Text(
+                'Search for apps by name or description',
+                style: TextStyle(color: AppTheme.textSecondary),
+              ),
+            )
+          : appProv.loading
           ? const Center(child: CircularProgressIndicator())
           : appProv.searchResults.isEmpty
-            ? const Center(child: Text('No results found', style: TextStyle(color: AppTheme.textSecondary)))
-            : ListView(
-                padding: const EdgeInsets.all(16),
-                children: appProv.searchResults.map((app) => Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: AppCard(
-                    app: app,
-                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => AppDetailScreen(appId: app.id))),
-                    onFavorite: context.read<AuthProvider>().isLoggedIn ? () => favProv.toggle(app.id) : null,
-                    isFavorited: favProv.isFavorited(app.id),
-                  ),
-                )).toList(),
+          ? const Center(
+              child: Text(
+                'No results found',
+                style: TextStyle(color: AppTheme.textSecondary),
               ),
+            )
+          : ListView(
+              padding: const EdgeInsets.all(16),
+              children: appProv.searchResults
+                  .map(
+                    (app) => Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: AppCard(
+                        app: app,
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => AppDetailScreen(appId: app.id),
+                          ),
+                        ),
+                        onFavorite: () => favProv.toggle(app.id),
+                        isFavorited: favProv.isFavorited(app.id),
+                      ),
+                    ),
+                  )
+                  .toList(),
+            ),
     );
   }
 }

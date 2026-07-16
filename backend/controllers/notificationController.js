@@ -1,4 +1,4 @@
-const UserNotification = require('../models/UserNotification');
+const DeviceNotification = require('../models/DeviceNotification');
 
 const list = async (req, res, next) => {
   try {
@@ -6,19 +6,19 @@ const list = async (req, res, next) => {
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
     const [notifications, total] = await Promise.all([
-      UserNotification.find({ userId: req.user._id })
+      DeviceNotification.find({ deviceId: req.deviceId })
         .populate('notificationId')
         .sort({ receivedAt: -1 })
         .skip(skip)
         .limit(parseInt(limit)),
-      UserNotification.countDocuments({ userId: req.user._id }),
+      DeviceNotification.countDocuments({ deviceId: req.deviceId }),
     ]);
 
     res.json({
       notifications: notifications.map((n) => ({
         ...n.notificationId.toObject(),
         isRead: n.isRead,
-        userNotificationId: n._id,
+        deviceNotificationId: n._id,
       })),
       pagination: {
         page: parseInt(page),
@@ -34,8 +34,8 @@ const list = async (req, res, next) => {
 
 const markAsRead = async (req, res, next) => {
   try {
-    const notification = await UserNotification.findOneAndUpdate(
-      { _id: req.params.id, userId: req.user._id },
+    const notification = await DeviceNotification.findOneAndUpdate(
+      { _id: req.params.id, deviceId: req.deviceId },
       { isRead: true },
       { new: true }
     );
@@ -52,8 +52,8 @@ const markAsRead = async (req, res, next) => {
 
 const markAllAsRead = async (req, res, next) => {
   try {
-    await UserNotification.updateMany(
-      { userId: req.user._id, isRead: false },
+    await DeviceNotification.updateMany(
+      { deviceId: req.deviceId, isRead: false },
       { isRead: true }
     );
     res.json({ message: 'All notifications marked as read' });
@@ -62,4 +62,13 @@ const markAllAsRead = async (req, res, next) => {
   }
 };
 
-module.exports = { list, markAsRead, markAllAsRead };
+const clearAll = async (req, res, next) => {
+  try {
+    await DeviceNotification.deleteMany({ deviceId: req.deviceId });
+    res.json({ message: 'All notifications cleared' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { list, markAsRead, markAllAsRead, clearAll };

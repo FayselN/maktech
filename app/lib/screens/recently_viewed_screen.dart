@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/app_provider.dart';
 import '../providers/favorite_provider.dart';
-import '../providers/auth_provider.dart';
 import '../theme/app_theme.dart';
 import 'app_detail_screen.dart';
 import '../widgets/app_card.dart';
@@ -48,7 +47,7 @@ class _RecentlyViewedScreenState extends State<RecentlyViewedScreen> {
                 child: AppCard(
                   app: app,
                   onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => AppDetailScreen(appId: app.id))),
-                  onFavorite: context.read<AuthProvider>().isLoggedIn ? () => favProv.toggle(app.id) : null,
+                  onFavorite: () => favProv.toggle(app.id),
                   isFavorited: favProv.isFavorited(app.id),
                 ),
               )).toList(),

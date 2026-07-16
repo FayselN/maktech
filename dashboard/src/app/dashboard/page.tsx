@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { api } from '@/lib/api';
 import { Smartphone, Eye, Star, MessageSquare } from 'lucide-react';
 import StatsCard from '@/components/StatsCard';
+import type { App } from '@/lib/types';
 
 interface Stats {
   totalApps: number;
@@ -16,21 +17,17 @@ interface Stats {
 
 export default function DashboardPage() {
   const [stats, setStats] = useState<Stats | null>(null);
-  const [recentReviews, setRecentReviews] = useState<any[]>([]);
 
   useEffect(() => {
-    Promise.all([
-      api.get<{ apps: any[]; pagination: any }>('/admin/apps?limit=1000'),
-      api.get<{ reviews: any[] }>('/admin/apps/...'),
-    ]).then(([appsRes]) => {
+    api.get<{ apps: App[] }>('/admin/apps?limit=1000').then((appsRes) => {
       const apps = appsRes.apps;
       setStats({
         totalApps: apps.length,
-        publishedApps: apps.filter((a: any) => a.status === 'published').length,
-        draftApps: apps.filter((a: any) => a.status === 'draft').length,
-        totalReviews: apps.reduce((sum: number, a: any) => sum + (a.ratingStats?.count || 0), 0),
-        totalViews: apps.reduce((sum: number, a: any) => sum + (a.viewCount || 0), 0),
-        totalFavorites: apps.reduce((sum: number, a: any) => sum + (a.favoriteCount || 0), 0),
+        publishedApps: apps.filter((app) => app.status === 'published').length,
+        draftApps: apps.filter((app) => app.status === 'draft').length,
+        totalReviews: apps.reduce((sum, app) => sum + (app.ratingStats?.count || 0), 0),
+        totalViews: apps.reduce((sum, app) => sum + (app.viewCount || 0), 0),
+        totalFavorites: apps.reduce((sum, app) => sum + (app.favoriteCount || 0), 0),
       });
     }).catch(console.error);
   }, []);

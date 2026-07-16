@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../providers/auth_provider.dart';
 import '../theme/app_theme.dart';
-import 'login_screen.dart';
-import 'home_screen.dart';
+import 'main_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -20,14 +17,11 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _init() async {
-    final auth = context.read<AuthProvider>();
-    await auth.init();
+    await Future.delayed(const Duration(milliseconds: 500));
     if (!mounted) return;
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(
-        builder: (_) => auth.isLoggedIn ? const HomeScreen() : const LoginScreen(),
-      ),
+      MaterialPageRoute(builder: (_) => const MainScreen()),
     );
   }
 
@@ -42,8 +36,15 @@ class _SplashScreenState extends State<SplashScreen> {
               width: 80,
               height: 80,
               decoration: BoxDecoration(
-                color: AppTheme.primary,
+                gradient: const LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [AppTheme.primary, AppTheme.primaryDark],
+                ),
                 borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(color: AppTheme.primary.withValues(alpha: 0.3), blurRadius: 20, spreadRadius: 2),
+                ],
               ),
               child: const Icon(Icons.explore, size: 40, color: Colors.white),
             ),

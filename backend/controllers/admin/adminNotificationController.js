@@ -1,6 +1,6 @@
 const Notification = require('../../models/Notification');
-const UserNotification = require('../../models/UserNotification');
-const User = require('../../models/User');
+const DeviceNotification = require('../../models/DeviceNotification');
+const Device = require('../../models/Device');
 const sendPushNotification = require('../../utils/sendPushNotification');
 const logActivity = require('../../utils/logActivity');
 
@@ -16,14 +16,14 @@ const send = async (req, res, next) => {
       sentBy: req.user._id,
     });
 
-    const users = await User.find({ isActive: true }).select('_id');
-    const userNotifications = users.map((user) => ({
-      userId: user._id,
+    const devices = await Device.find().select('deviceId');
+    const deviceNotifications = devices.map((device) => ({
+      deviceId: device.deviceId,
       notificationId: notification._id,
     }));
 
-    if (userNotifications.length > 0) {
-      await UserNotification.insertMany(userNotifications);
+    if (deviceNotifications.length > 0) {
+      await DeviceNotification.insertMany(deviceNotifications);
     }
 
     await sendPushNotification({

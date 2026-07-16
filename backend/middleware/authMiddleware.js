@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const User = require('../models/User');
+const Admin = require('../models/Admin');
 
 const authMiddleware = async (req, res, next) => {
   try {
@@ -11,12 +11,12 @@ const authMiddleware = async (req, res, next) => {
     const token = header.split(' ')[1];
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    const user = await User.findById(decoded.id).select('-passwordHash');
-    if (!user || !user.isActive) {
-      return res.status(401).json({ message: 'User not found or inactive' });
+    const admin = await Admin.findById(decoded.id).select('-passwordHash');
+    if (!admin || !admin.isActive) {
+      return res.status(401).json({ message: 'Admin not found or inactive' });
     }
 
-    req.user = user;
+    req.user = admin;
     next();
   } catch (error) {
     return res.status(401).json({ message: 'Invalid token' });

@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../providers/app_provider.dart';
 import '../providers/favorite_provider.dart';
-import '../providers/auth_provider.dart';
 import '../models/category_model.dart';
 import '../theme/app_theme.dart';
 import 'app_detail_screen.dart';
@@ -56,7 +55,7 @@ class _CategoryAppsScreenState extends State<CategoryAppsScreen> {
                 child: AppCard(
                   app: app,
                   onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => AppDetailScreen(appId: app.id))),
-                  onFavorite: context.read<AuthProvider>().isLoggedIn ? () => favProv.toggle(app.id) : null,
+                  onFavorite: () => favProv.toggle(app.id),
                   isFavorited: favProv.isFavorited(app.id),
                 ),
               )).toList(),

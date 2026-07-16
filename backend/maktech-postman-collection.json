@@ -1,0 +1,775 @@
+{
+  "info": {
+    "_postman_id": "maktech-api-collection",
+    "name": "Maktech API",
+    "description": "Complete API collection for the Maktech backend. Base URL: http://localhost:5000\n\nSetup:\n1. After calling POST /api/admin/auth/login, copy the token from the response.\n2. In the collection Variables, paste it as the value for `adminToken`.\n3. Endpoints requiring a device send `x-device-id` automatically via the collection variable `deviceId`.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000",
+      "type": "string"
+    },
+    {
+      "key": "adminToken",
+      "value": "PASTE_YOUR_JWT_TOKEN_HERE",
+      "type": "string"
+    },
+    {
+      "key": "deviceId",
+      "value": "test-device-001",
+      "type": "string"
+    },
+    {
+      "key": "appId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "appSlug",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "categorySlug",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "reviewId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "categoryId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "notificationId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "🩺 Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "health"]
+            },
+            "description": "Verify the server is running."
+          }
+        }
+      ]
+    },
+    {
+      "name": "📱 Apps (Public)",
+      "item": [
+        {
+          "name": "List All Apps",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/apps?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "apps"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" },
+                { "key": "category", "value": "", "disabled": true },
+                { "key": "search", "value": "", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Trending Apps",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/apps/trending",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "apps", "trending"]
+            }
+          }
+        },
+        {
+          "name": "Get New Apps",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/apps/new",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "apps", "new"]
+            }
+          }
+        },
+        {
+          "name": "Get Daily Featured App",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/apps/daily-featured",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "apps", "daily-featured"]
+            }
+          }
+        },
+        {
+          "name": "Get App by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/apps/{{appId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "apps", "{{appId}}"]
+            },
+            "description": "Set the `appId` variable first."
+          }
+        },
+        {
+          "name": "Get App by Slug",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/apps/slug/{{appSlug}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "apps", "slug", "{{appSlug}}"]
+            },
+            "description": "Set the `appSlug` variable first."
+          }
+        },
+        {
+          "name": "Get Recently Viewed Apps",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "x-device-id", "value": "{{deviceId}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/apps/recently-viewed",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "apps", "recently-viewed"]
+            }
+          }
+        },
+        {
+          "name": "Increment App View",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "x-device-id", "value": "{{deviceId}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/apps/{{appId}}/view",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "apps", "{{appId}}", "view"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🗂 Categories (Public)",
+      "item": [
+        {
+          "name": "List All Categories",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "categories"]
+            }
+          }
+        },
+        {
+          "name": "Get Category by Slug",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/categories/{{categorySlug}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "categories", "{{categorySlug}}"]
+            },
+            "description": "Set the `categorySlug` variable first."
+          }
+        }
+      ]
+    },
+    {
+      "name": "❤️ Favorites (Device Required)",
+      "item": [
+        {
+          "name": "List My Favorites",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "x-device-id", "value": "{{deviceId}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/favorites",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "favorites"]
+            }
+          }
+        },
+        {
+          "name": "Check if App is Favorited",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "x-device-id", "value": "{{deviceId}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/favorites/{{appId}}/check",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "favorites", "{{appId}}", "check"]
+            }
+          }
+        },
+        {
+          "name": "Add to Favorites",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "x-device-id", "value": "{{deviceId}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/favorites/{{appId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "favorites", "{{appId}}"]
+            }
+          }
+        },
+        {
+          "name": "Remove from Favorites",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "x-device-id", "value": "{{deviceId}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/favorites/{{appId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "favorites", "{{appId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "⭐ Reviews (Public + Device)",
+      "item": [
+        {
+          "name": "List Reviews for App",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/apps/{{appId}}/reviews",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "apps", "{{appId}}", "reviews"]
+            }
+          }
+        },
+        {
+          "name": "Create Review",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "x-device-id", "value": "{{deviceId}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rating\": 5,\n  \"comment\": \"This app is fantastic!\",\n  \"authorName\": \"Test User\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/apps/{{appId}}/reviews",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "apps", "{{appId}}", "reviews"]
+            }
+          }
+        },
+        {
+          "name": "Update Review",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "x-device-id", "value": "{{deviceId}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rating\": 4,\n  \"comment\": \"Updated: Still great!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/apps/{{appId}}/reviews/{{reviewId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "apps", "{{appId}}", "reviews", "{{reviewId}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Review",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "x-device-id", "value": "{{deviceId}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/apps/{{appId}}/reviews/{{reviewId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "apps", "{{appId}}", "reviews", "{{reviewId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🔔 Notifications (Device Required)",
+      "item": [
+        {
+          "name": "List Notifications",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "x-device-id", "value": "{{deviceId}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/notifications",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "notifications"]
+            }
+          }
+        },
+        {
+          "name": "Mark Notification as Read",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "x-device-id", "value": "{{deviceId}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/notifications/{{notificationId}}/read",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "notifications", "{{notificationId}}", "read"]
+            }
+          }
+        },
+        {
+          "name": "Mark All as Read",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "x-device-id", "value": "{{deviceId}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/notifications/read-all",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "notifications", "read-all"]
+            }
+          }
+        },
+        {
+          "name": "Clear All Notifications",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "x-device-id", "value": "{{deviceId}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/notifications",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "notifications"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "📡 Devices",
+      "item": [
+        {
+          "name": "Register Device",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "x-device-id", "value": "{{deviceId}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fcmToken\": \"your-fcm-token-here\",\n  \"platform\": \"android\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/devices",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "devices"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🔐 Admin Auth",
+      "item": [
+        {
+          "name": "Admin Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.token) {",
+                  "  pm.collectionVariables.set('adminToken', json.token);",
+                  "  console.log('✅ Token saved to collection variable: adminToken');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@maktech.com\",\n  \"password\": \"admin123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "auth", "login"]
+            },
+            "description": "Login as admin. The JWT token is automatically saved to the `adminToken` variable via the test script."
+          }
+        },
+        {
+          "name": "Get Current Admin (Me)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/auth/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "auth", "me"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🛠 Admin — Apps",
+      "item": [
+        {
+          "name": "List All Apps (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/apps",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "apps"]
+            }
+          }
+        },
+        {
+          "name": "Get App by ID (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/apps/{{appId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "apps", "{{appId}}"]
+            }
+          }
+        },
+        {
+          "name": "Create App",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Test App\",\n  \"slug\": \"test-app\",\n  \"description\": \"A great test application\",\n  \"shortDescription\": \"Great test app\",\n  \"category\": \"{{categoryId}}\",\n  \"version\": \"1.0.0\",\n  \"size\": \"25MB\",\n  \"developer\": \"Test Dev\",\n  \"downloadUrl\": \"https://example.com/download\",\n  \"iconUrl\": \"https://example.com/icon.png\",\n  \"platform\": \"android\",\n  \"isFree\": true,\n  \"price\": 0\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/apps",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "apps"]
+            }
+          }
+        },
+        {
+          "name": "Update App",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated App Name\",\n  \"description\": \"Updated description\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/apps/{{appId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "apps", "{{appId}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete App",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/apps/{{appId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "apps", "{{appId}}"]
+            }
+          }
+        },
+        {
+          "name": "Upload Screenshots",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "screenshots",
+                  "type": "file",
+                  "src": [],
+                  "description": "Select image files to upload"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/apps/{{appId}}/screenshots",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "apps", "{{appId}}", "screenshots"]
+            }
+          }
+        },
+        {
+          "name": "Delete Screenshot",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/apps/{{appId}}/screenshots/:screenshotId",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "apps", "{{appId}}", "screenshots", ":screenshotId"],
+              "variable": [
+                { "key": "screenshotId", "value": "" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🛠 Admin — Categories",
+      "item": [
+        {
+          "name": "List All Categories (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "categories"]
+            }
+          }
+        },
+        {
+          "name": "Create Category",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Productivity\",\n  \"slug\": \"productivity\",\n  \"icon\": \"⚡\",\n  \"description\": \"Apps that boost your productivity\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "categories"]
+            }
+          }
+        },
+        {
+          "name": "Update Category",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Category Name\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/categories/{{categoryId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "categories", "{{categoryId}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Category",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/categories/{{categoryId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "categories", "{{categoryId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🛠 Admin — Featured",
+      "item": [
+        {
+          "name": "List All Featured",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/featured",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "featured"]
+            }
+          }
+        },
+        {
+          "name": "Get Featured by Date",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/featured/2026-07-16",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "featured", "2026-07-16"]
+            },
+            "description": "Date format: YYYY-MM-DD"
+          }
+        },
+        {
+          "name": "Set Daily Featured App",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"appId\": \"{{appId}}\",\n  \"date\": \"2026-07-16\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/featured",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "featured"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🛠 Admin — Notifications",
+      "item": [
+        {
+          "name": "List All Notifications (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/notifications",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "notifications"]
+            }
+          }
+        },
+        {
+          "name": "Send Notification",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"New Update Available\",\n  \"body\": \"Check out the latest features in version 2.0!\",\n  \"appId\": \"{{appId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/notifications",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "notifications"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

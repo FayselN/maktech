@@ -19,7 +19,7 @@ class NotificationModel {
 
   factory NotificationModel.fromJson(Map<String, dynamic> json) {
     return NotificationModel(
-      id: json['userNotificationId'] as String? ?? json['_id'] as String,
+      id: json['deviceNotificationId'] as String? ?? json['_id'] as String,
       title: json['title'] as String,
       body: json['body'] as String,
       appId: json['appId'] as String?,

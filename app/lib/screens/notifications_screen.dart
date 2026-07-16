@@ -25,7 +25,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     setState(() => _loading = true);
     try {
       final res = await ApiService().get('/notifications');
-      final list = (res['notifications'] as List).map((n) => NotificationModel.fromJson(n)).toList();
+      final list = (res['notifications'] as List)
+          .map((n) => NotificationModel.fromJson(n))
+          .toList();
       setState(() => _notifications = list);
     } catch (_) {
       setState(() => _notifications = []);
@@ -53,20 +55,63 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 await ApiService().put('/notifications/read-all');
                 _load();
               },
-              child: const Text('Mark all read', style: TextStyle(fontSize: 13)),
+              child: const Text(
+                'Mark all read',
+                style: TextStyle(fontSize: 13),
+              ),
+            ),
+          if (_notifications.isNotEmpty)
+            IconButton(
+              tooltip: 'Clear all notifications',
+              icon: const Icon(Icons.delete_outline),
+              onPressed: () async {
+                final confirmed = await showDialog<bool>(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: const Text('Clear notifications?'),
+                    content: const Text(
+                      'This removes all notifications from this device.',
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context, false),
+                        child: const Text('Cancel'),
+                      ),
+                      FilledButton(
+                        onPressed: () => Navigator.pop(context, true),
+                        child: const Text('Clear'),
+                      ),
+                    ],
+                  ),
+                );
+                if (confirmed == true) {
+                  await ApiService().delete('/notifications');
+                  if (mounted) _load();
+                }
+              },
             ),
         ],
       ),
       body: _loading
-        ? const Center(child: CircularProgressIndicator())
-        : _notifications.isEmpty
+          ? const Center(child: CircularProgressIndicator())
+          : _notifications.isEmpty
           ? const Center(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.notifications_none, size: 48, color: AppTheme.textSecondary),
+                  Icon(
+                    Icons.notifications_none,
+                    size: 48,
+                    color: AppTheme.textSecondary,
+                  ),
                   SizedBox(height: 12),
-                  Text('No notifications', style: TextStyle(fontSize: 16, color: AppTheme.textSecondary)),
+                  Text(
+                    'No notifications',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: AppTheme.textSecondary,
+                    ),
+                  ),
                 ],
               ),
             )
@@ -80,24 +125,39 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   onTap: () {
                     if (!n.isRead) _markRead(n.id);
                     if (n.appId != null) {
-                      Navigator.push(context, MaterialPageRoute(builder: (_) => AppDetailScreen(appId: n.appId!)));
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => AppDetailScreen(appId: n.appId!),
+                        ),
+                      );
                     }
                   },
                   child: Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: n.isRead ? Colors.white : AppTheme.primary.withValues(alpha: 0.03),
+                      color: n.isRead
+                          ? Colors.white
+                          : AppTheme.primary.withValues(alpha: 0.03),
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: n.isRead ? AppTheme.border : AppTheme.primary.withValues(alpha: 0.2)),
+                      border: Border.all(
+                        color: n.isRead
+                            ? AppTheme.border
+                            : AppTheme.primary.withValues(alpha: 0.2),
+                      ),
                     ),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Container(
-                          width: 8, height: 8, margin: const EdgeInsets.only(top: 6),
+                          width: 8,
+                          height: 8,
+                          margin: const EdgeInsets.only(top: 6),
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: n.isRead ? AppTheme.border : AppTheme.primary,
+                            color: n.isRead
+                                ? AppTheme.border
+                                : AppTheme.primary,
                           ),
                         ),
                         const SizedBox(width: 12),
@@ -105,22 +165,59 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(n.title, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: AppTheme.text)),
+                              Text(
+                                n.title,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 14,
+                                  color: AppTheme.text,
+                                ),
+                              ),
                               const SizedBox(height: 4),
-                              Text(n.body, style: const TextStyle(fontSize: 13, color: AppTheme.textSecondary, height: 1.4)),
+                              Text(
+                                n.body,
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  color: AppTheme.textSecondary,
+                                  height: 1.4,
+                                ),
+                              ),
                               const SizedBox(height: 6),
                               Row(
                                 children: [
                                   Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 6,
+                                      vertical: 2,
+                                    ),
                                     decoration: BoxDecoration(
-                                      color: n.type == 'new_app' ? AppTheme.success.withValues(alpha: 0.1) : AppTheme.primary.withValues(alpha: 0.1),
+                                      color: n.type == 'new_app'
+                                          ? AppTheme.success.withValues(
+                                              alpha: 0.1,
+                                            )
+                                          : AppTheme.primary.withValues(
+                                              alpha: 0.1,
+                                            ),
                                       borderRadius: BorderRadius.circular(4),
                                     ),
-                                    child: Text(n.type.replaceAll('_', ' '), style: TextStyle(fontSize: 10, color: n.type == 'new_app' ? AppTheme.success : AppTheme.primary)),
+                                    child: Text(
+                                      n.type.replaceAll('_', ' '),
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        color: n.type == 'new_app'
+                                            ? AppTheme.success
+                                            : AppTheme.primary,
+                                      ),
+                                    ),
                                   ),
                                   const Spacer(),
-                                  Text(_timeAgo(n.sentAt), style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary)),
+                                  Text(
+                                    _timeAgo(n.sentAt),
+                                    style: const TextStyle(
+                                      fontSize: 11,
+                                      color: AppTheme.textSecondary,
+                                    ),
+                                  ),
                                 ],
                               ),
                             ],
