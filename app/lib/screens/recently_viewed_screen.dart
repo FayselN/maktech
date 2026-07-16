@@ -17,7 +17,10 @@ class _RecentlyViewedScreenState extends State<RecentlyViewedScreen> {
   @override
   void initState() {
     super.initState();
-    context.read<AppProvider>().loadRecentlyViewed();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      context.read<AppProvider>().loadRecentlyViewed();
+    });
   }
 
   @override

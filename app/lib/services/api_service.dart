@@ -51,11 +51,24 @@ class ApiService {
   }
 
   dynamic _handleResponse(http.Response response) {
-    final body = jsonDecode(response.body);
+    // Try parsing as JSON; catch HTML or other non-JSON responses gracefully
+    dynamic body;
+    try {
+      body = jsonDecode(response.body);
+    } on FormatException {
+      throw ApiException(
+        'Server returned an unexpected response (status ${response.statusCode}). '
+        'The server may be starting up — please try again in a moment.',
+      );
+    }
+
     if (response.statusCode >= 200 && response.statusCode < 300) {
       return body;
     }
-    throw ApiException(body['message'] as String? ?? 'Request failed');
+    throw ApiException(
+      (body is Map ? body['message'] ?? body['error'] : null) as String? ??
+          'Request failed (${response.statusCode})',
+    );
   }
 }
 

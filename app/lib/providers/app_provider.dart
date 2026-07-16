@@ -30,7 +30,6 @@ class AppProvider extends ChangeNotifier {
   Future<void> loadHomeData() async {
     _loading = true;
     _error = null;
-    notifyListeners();
     try {
       final results = await Future.wait([
         _api.get('/apps/trending'),
@@ -51,7 +50,6 @@ class AppProvider extends ChangeNotifier {
 
   Future<void> loadAppDetail(String id) async {
     _loading = true;
-    notifyListeners();
     try {
       final res = await _api.get('/apps/$id');
       _selectedApp = AppModel.fromJson(res);
@@ -82,7 +80,6 @@ class AppProvider extends ChangeNotifier {
 
   Future<void> loadCategoryApps(String slug) async {
     _loading = true;
-    notifyListeners();
     try {
       final res = await _api.get('/apps', queryParams: {'category': slug});
       _categoryApps = (res['apps'] as List)
@@ -95,7 +92,6 @@ class AppProvider extends ChangeNotifier {
 
   Future<void> loadRecentlyViewed() async {
     _loading = true;
-    notifyListeners();
     try {
       final res = await _api.get('/apps/recently-viewed');
       _recentlyViewed = (res as List).map((a) => AppModel.fromJson(a)).toList();

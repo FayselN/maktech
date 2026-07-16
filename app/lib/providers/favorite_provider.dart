@@ -13,7 +13,6 @@ class FavoriteProvider extends ChangeNotifier {
 
   Future<void> loadFavorites() async {
     _loading = true;
-    notifyListeners();
     try {
       final res = await _api.get('/favorites');
       _favorites = (res as List).map((a) => AppModel.fromJson(a)).toList();

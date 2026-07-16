@@ -2,6 +2,9 @@ import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart' show kIsWeb;
 
 class ApiConfig {
+  // 🚀 Production URL — update this with your actual Render URL
+  static const String _productionUrl = 'https://maktech.onrender.com/api';
+
   static String get baseUrl {
     const envBaseUrl = String.fromEnvironment('BASE_URL');
     if (envBaseUrl.isNotEmpty) {
@@ -9,12 +12,13 @@ class ApiConfig {
     }
 
     if (kIsWeb) {
-      return 'http://localhost:5000/api';
+      return _productionUrl;
     }
     if (Platform.isAndroid) {
-      return 'http://10.0.2.2:5000/api';
+      // Use 10.0.2.2 for emulator, production URL for real device
+      return _productionUrl;
     }
-    return 'http://localhost:5000/api';
+    return _productionUrl;
   }
 
   static const Duration timeout = Duration(seconds: 30);

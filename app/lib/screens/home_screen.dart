@@ -29,10 +29,13 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    context.read<AppProvider>().loadHomeData();
-    context.read<AppProvider>().loadRecentlyViewed();
-    _loadCategories();
-    context.read<FavoriteProvider>().loadFavorites();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      context.read<AppProvider>().loadHomeData();
+      context.read<AppProvider>().loadRecentlyViewed();
+      _loadCategories();
+      context.read<FavoriteProvider>().loadFavorites();
+    });
   }
 
   Future<void> _loadCategories() async {

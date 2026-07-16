@@ -28,7 +28,10 @@ class _AppDetailScreenState extends State<AppDetailScreen> {
   @override
   void initState() {
     super.initState();
-    context.read<AppProvider>().loadAppDetail(widget.appId);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      context.read<AppProvider>().loadAppDetail(widget.appId);
+    });
     _loadReviews();
   }
 

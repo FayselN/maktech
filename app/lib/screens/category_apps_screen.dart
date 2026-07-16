@@ -20,7 +20,10 @@ class _CategoryAppsScreenState extends State<CategoryAppsScreen> {
   @override
   void initState() {
     super.initState();
-    context.read<AppProvider>().loadCategoryApps(widget.category.slug);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      context.read<AppProvider>().loadCategoryApps(widget.category.slug);
+    });
   }
 
   @override
