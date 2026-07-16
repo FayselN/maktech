@@ -31,15 +31,21 @@ class ApiService {
 
   Future<dynamic> post(String path, {Map<String, dynamic>? body}) async {
     final uri = Uri.parse('${ApiConfig.baseUrl}$path');
-    final response = await _client.post(uri, headers: _headers, body: jsonEncode(body))
-        .timeout(ApiConfig.timeout);
+    final response = await _client.post(
+      uri, 
+      headers: _headers, 
+      body: body != null ? jsonEncode(body) : null,
+    ).timeout(ApiConfig.timeout);
     return _handleResponse(response);
   }
 
   Future<dynamic> put(String path, {Map<String, dynamic>? body}) async {
     final uri = Uri.parse('${ApiConfig.baseUrl}$path');
-    final response = await _client.put(uri, headers: _headers, body: jsonEncode(body))
-        .timeout(ApiConfig.timeout);
+    final response = await _client.put(
+      uri, 
+      headers: _headers, 
+      body: body != null ? jsonEncode(body) : null,
+    ).timeout(ApiConfig.timeout);
     return _handleResponse(response);
   }
 

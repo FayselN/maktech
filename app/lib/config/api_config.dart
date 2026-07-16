@@ -3,7 +3,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 
 class ApiConfig {
   // 🚀 Production URL — update this with your actual Render URL
-  static const String _productionUrl = 'https://maktech.onrender.com';
+  static const String _productionUrl = 'https://maktech.onrender.com/api';
 
   static String get baseUrl {
     const envBaseUrl = String.fromEnvironment('BASE_URL');
