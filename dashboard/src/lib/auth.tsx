@@ -24,7 +24,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (saved) {
       api.setToken(saved);
       setToken(saved);
-      api.get<{ user: User }>('/auth/me')
+      api.get<{ user: User }>('/admin/auth/me')
         .then((res) => {
           if (res.user.role !== 'admin') {
             throw new Error('Not an admin');
@@ -43,7 +43,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = useCallback(async (email: string, password: string) => {
-    const res = await api.post<{ token: string; user: User }>('/auth/login', { email, password });
+    const res = await api.post<{ token: string; user: User }>('/admin/auth/login', { email, password });
     if (res.user.role !== 'admin') {
       throw new Error('Admin access required');
     }

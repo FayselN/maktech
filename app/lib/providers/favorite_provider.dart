@@ -33,6 +33,8 @@ class FavoriteProvider extends ChangeNotifier {
       } else {
         await _api.post('/favorites/$appId');
         _favoriteIds.add(appId);
+        // Fetch the full list to get the actual AppModel data
+        await loadFavorites();
       }
       notifyListeners();
     } catch (_) {}
