@@ -24,12 +24,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (saved) {
       api.setToken(saved);
       setToken(saved);
-      api.get<{ user: User }>('/admin/auth/me')
+      api.get<{ admin: User }>('/admin/auth/me')
         .then((res) => {
-          if (res.user.role !== 'admin') {
+          if (res.admin.role !== 'admin') {
             throw new Error('Not an admin');
           }
-          setUser(res.user);
+          setUser(res.admin);
         })
         .catch(() => {
           localStorage.removeItem('token');
@@ -43,13 +43,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = useCallback(async (email: string, password: string) => {
-    const res = await api.post<{ token: string; user: User }>('/admin/auth/login', { email, password });
-    if (res.user.role !== 'admin') {
+    const res = await api.post<{ token: string; admin: User }>('/admin/auth/login', { email, password });
+    if (res.admin.role !== 'admin') {
       throw new Error('Admin access required');
     }
     api.setToken(res.token);
     setToken(res.token);
-    setUser(res.user);
+    setUser(res.admin);
   }, []);
 
   const logout = useCallback(() => {
