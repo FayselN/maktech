@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "448535962428",
+    "project_id": "mak-tech-11aa9",
+    "storage_bucket": "mak-tech-11aa9.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:448535962428:android:1a1b7a9cecbca7cd81b439",
+        "android_client_info": {
+          "package_name": "com.maktech.maktech"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDM4BXNkOu1i_kcHdP473G2b0vmPZ0WR8o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

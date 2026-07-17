@@ -39,6 +39,8 @@ dependencies:
   google_fonts: ^6.2.0
   carousel_slider: ^5.0.0
   shimmer: ^3.0.0
+  firebase_core: ^4.12.1
+  firebase_messaging: ^16.4.3
 
 dev_dependencies:
   flutter_test:
