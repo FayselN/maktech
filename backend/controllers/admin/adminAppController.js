@@ -1,6 +1,7 @@
 const App = require('../../models/App');
 const slugify = require('../../utils/slugify');
 const logActivity = require('../../utils/logActivity');
+const { uploadToR2 } = require('../../middleware/uploadMiddleware');
 
 const create = async (req, res, next) => {
   try {
@@ -109,10 +110,12 @@ const addScreenshots = async (req, res, next) => {
     }
 
     const files = req.files || [];
-    const newScreenshots = files.map((file, idx) => ({
-      url: file.path,
-      order: app.screenshots.length + idx,
-    }));
+    const newScreenshots = await Promise.all(
+      files.map(async (file, idx) => {
+        const url = await uploadToR2(file.buffer, file.originalname, 'screenshots');
+        return { url, order: app.screenshots.length + idx };
+      })
+    );
 
     app.screenshots.push(...newScreenshots);
     app.updatedBy = req.user._id;

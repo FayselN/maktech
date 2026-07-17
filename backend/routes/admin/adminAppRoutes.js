@@ -3,7 +3,7 @@ const {
   create, update, remove, listAll, addScreenshots, deleteScreenshot, getById,
 } = require('../../controllers/admin/adminAppController');
 const validate = require('../../middleware/validateMiddleware');
-const upload = require('../../middleware/uploadMiddleware');
+const { upload } = require('../../middleware/uploadMiddleware');
 const { createAppSchema, updateAppSchema } = require('../../validators/appValidator');
 
 const router = express.Router();
