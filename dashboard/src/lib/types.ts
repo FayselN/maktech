@@ -29,6 +29,8 @@ export interface App {
   _id: string;
   name: string;
   slug: string;
+  searchCode: string;
+  curiosityTitle: string;
   shortDescription: string;
   longDescription: string;
   developerName?: string;

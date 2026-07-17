@@ -17,6 +17,9 @@ interface ListItem {
 
 interface FormData {
   name: string;
+  slug: string;
+  searchCode: string;
+  curiosityTitle: string;
   shortDescription: string;
   longDescription: string;
   developerName: string;
@@ -34,6 +37,9 @@ interface FormData {
 
 const emptyForm: FormData = {
   name: '',
+  slug: '',
+  searchCode: '',
+  curiosityTitle: '',
   shortDescription: '',
   longDescription: '',
   developerName: '',
@@ -66,6 +72,9 @@ export default function AppForm({ app, onSuccess }: Props) {
     if (app) {
       setForm({
         name: app.name || '',
+        slug: app.slug || '',
+        searchCode: app.searchCode || '',
+        curiosityTitle: app.curiosityTitle || '',
         shortDescription: app.shortDescription || '',
         longDescription: app.longDescription || '',
         developerName: app.developerName || '',
@@ -103,6 +112,9 @@ export default function AppForm({ app, onSuccess }: Props) {
     try {
       const body = {
         name: form.name,
+        slug: form.slug,
+        searchCode: form.searchCode,
+        curiosityTitle: form.curiosityTitle,
         shortDescription: form.shortDescription,
         longDescription: form.longDescription,
         developerName: form.developerName,
@@ -149,9 +161,25 @@ export default function AppForm({ app, onSuccess }: Props) {
             <input className={inputClass} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
           </div>
           <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Slug * <span className="text-gray-400 font-normal">(unique, lowercase, hyphens only)</span></label>
+            <input className={inputClass} value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value.toLowerCase().replace(/\s+/g, '-') })} required placeholder="e.g. my-app-name" />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Search Code * <span className="text-gray-400 font-normal">(unique short code)</span></label>
+            <input className={inputClass} value={form.searchCode} onChange={(e) => setForm({ ...form, searchCode: e.target.value.toLowerCase() })} required placeholder="e.g. app01" />
+          </div>
+          <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Package Name *</label>
             <input className={inputClass} value={form.packageName} onChange={(e) => setForm({ ...form, packageName: e.target.value })} required placeholder="com.example.app" />
           </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Curiosity Title * <span className="text-gray-400 font-normal">(catchy tagline shown on card)</span></label>
+          <input className={inputClass} value={form.curiosityTitle} onChange={(e) => setForm({ ...form, curiosityTitle: e.target.value })} required placeholder="e.g. Your Second Brain" />
         </div>
 
         <div>
