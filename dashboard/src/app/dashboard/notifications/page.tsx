@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '@/lib/api';
 import type { App } from '@/lib/types';
-import { Send, Search } from 'lucide-react';
+import { Send, Search, Trash2 } from 'lucide-react';
 
 export default function NotificationsPage() {
   const [title, setTitle] = useState('');
@@ -52,6 +52,16 @@ export default function NotificationsPage() {
       setMessage(err instanceof Error ? err.message : 'Failed to send');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!window.confirm('Are you sure you want to delete this notification? It will be removed from users\\' devices.')) return;
+    try {
+      await api.delete(`/admin/notifications/${id}`);
+      setHistory((prev) => prev.filter((n) => n._id !== id));
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Failed to delete');
     }
   };
 
@@ -153,6 +163,15 @@ export default function NotificationsPage() {
                     <p className="text-xs text-gray-400 mt-1">
                       {new Date(n.sentAt).toLocaleDateString()}
                     </p>
+                  </div>
+                  <div className="ml-4 pl-4 border-l border-gray-100 flex items-center">
+                    <button
+                      onClick={() => handleDelete(n._id)}
+                      className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                      title="Delete Notification"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
                   </div>
                 </div>
               </div>
