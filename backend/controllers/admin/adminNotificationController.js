@@ -69,4 +69,29 @@ const listAll = async (req, res, next) => {
   }
 };
 
-module.exports = { send, listAll };
+const remove = async (req, res, next) => {
+  try {
+    const notification = await Notification.findByIdAndDelete(req.params.id);
+
+    if (!notification) {
+      return res.status(404).json({ message: 'Notification not found' });
+    }
+
+    // Also delete all associated device notifications so it disappears from users' history
+    await DeviceNotification.deleteMany({ notificationId: req.params.id });
+
+    await logActivity({
+      adminId: req.user._id,
+      action: 'notification_deleted',
+      targetType: 'notification',
+      targetId: req.params.id,
+      changes: { title: notification.title },
+    });
+
+    res.json({ message: 'Notification deleted successfully' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { send, listAll, remove };
