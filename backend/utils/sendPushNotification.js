@@ -12,6 +12,21 @@ const sendPushNotification = async ({ title, body, data }) => {
       notification: { title, body },
       data: data || {},
       tokens,
+      android: {
+        priority: 'high',
+        notification: {
+          sound: 'default',
+          channelId: 'maktech_notifications',
+        },
+      },
+      apns: {
+        payload: {
+          aps: {
+            sound: 'default',
+            contentAvailable: true,
+          },
+        },
+      },
     };
 
     const response = await admin.messaging().sendEachForMulticast(message);
