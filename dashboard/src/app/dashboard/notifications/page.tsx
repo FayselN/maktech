@@ -56,7 +56,7 @@ export default function NotificationsPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!window.confirm('Are you sure you want to delete this notification? It will be removed from users\\' devices.')) return;
+    if (!window.confirm("Are you sure you want to delete this notification? It will be removed from users' devices.")) return;
     try {
       await api.delete(`/admin/notifications/${id}`);
       setHistory((prev) => prev.filter((n) => n._id !== id));
