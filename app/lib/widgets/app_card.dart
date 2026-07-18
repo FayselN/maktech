@@ -41,17 +41,23 @@ class AppCard extends StatelessWidget {
                 child: Container(
                   width: 64,
                   height: 64,
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [AppTheme.primary, AppTheme.primaryDark],
-                    ),
+                  decoration: BoxDecoration(
+                    color: AppTheme.primary.withValues(alpha: 0.1),
                   ),
-                  child: const Icon(
-                    Icons.explore,
-                    color: Colors.white,
-                    size: 32,
+                  child: CachedNetworkImage(
+                    imageUrl: app.iconUrl,
+                    fit: BoxFit.cover,
+                    placeholder: (context, url) => const Center(
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primary),
+                      ),
+                    ),
+                    errorWidget: (context, url, error) => const Icon(
+                      Icons.explore,
+                      color: AppTheme.primary,
+                      size: 32,
+                    ),
                   ),
                 ),
               ),

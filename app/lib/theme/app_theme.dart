@@ -78,6 +78,16 @@ class AppTheme {
         hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.3)),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       ),
+      snackBarTheme: SnackBarThemeData(
+        backgroundColor: card,
+        contentTextStyle: const TextStyle(color: text, fontWeight: FontWeight.w500),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+        ),
+        behavior: SnackBarBehavior.floating,
+        elevation: 8,
+      ),
       iconTheme: const IconThemeData(color: textSecondary),
     );
   }

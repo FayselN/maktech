@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:provider/provider.dart';
 import '../providers/app_provider.dart';
 import '../providers/favorite_provider.dart';
@@ -172,7 +173,25 @@ class _HomeScreenState extends State<HomeScreen> {
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: 0.2),
                 ),
-                child: const Icon(Icons.explore, color: Colors.white, size: 32),
+                child: CachedNetworkImage(
+                  imageUrl: app.iconUrl,
+                  fit: BoxFit.cover,
+                  placeholder: (context, url) => const Center(
+                    child: SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    ),
+                  ),
+                  errorWidget: (context, url, error) => const Icon(
+                    Icons.explore,
+                    color: Colors.white,
+                    size: 32,
+                  ),
+                ),
               ),
             ),
             const SizedBox(width: 16),

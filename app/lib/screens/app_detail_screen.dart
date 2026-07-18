@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -74,19 +75,41 @@ class _AppDetailScreenState extends State<AppDetailScreen> {
       ]);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Thanks for your review!')),
+          SnackBar(
+            content: const Text('Thanks for your review!'),
+            backgroundColor: AppTheme.card,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+              side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+            ),
+          ),
         );
       }
     } on ApiException catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(error.message)));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(error.message),
+            backgroundColor: AppTheme.error.withValues(alpha: 0.9),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+        );
       }
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Could not submit your review.')),
+          SnackBar(
+            content: const Text('Could not submit your review.'),
+            backgroundColor: AppTheme.error.withValues(alpha: 0.9),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
         );
       }
     } finally {
@@ -97,9 +120,17 @@ class _AppDetailScreenState extends State<AppDetailScreen> {
   Future<void> _copyLink(String url) async {
     await Clipboard.setData(ClipboardData(text: url));
     if (mounted) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('App link copied')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('App link copied'),
+          backgroundColor: AppTheme.card,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+          ),
+        ),
+      );
     }
   }
 
@@ -164,10 +195,24 @@ class _AppDetailScreenState extends State<AppDetailScreen> {
                             width: 56,
                             height: 56,
                             color: Colors.white.withValues(alpha: 0.2),
-                            child: const Icon(
-                              Icons.explore,
-                              color: Colors.white,
-                              size: 28,
+                            child: CachedNetworkImage(
+                              imageUrl: app.iconUrl,
+                              fit: BoxFit.cover,
+                              placeholder: (context, url) => const Center(
+                                child: SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                  ),
+                                ),
+                              ),
+                              errorWidget: (context, url, error) => const Icon(
+                                Icons.explore,
+                                color: Colors.white,
+                                size: 28,
+                              ),
                             ),
                           ),
                         ),
