@@ -37,66 +37,115 @@ class AppProvider extends ChangeNotifier {
   bool get isOfflineMode => _isOfflineMode;
 
   Future<void> loadHomeData({bool forceRefresh = false}) async {
-    _loading = true;
     _apiError = null;
     _isOfflineMode = false;
+    _loading = true;
     notifyListeners();
-    
-    try {
-      final results = await Future.wait([
-        _cache.fetchWithCache<List<AppModel>>(
-          cacheKey: 'trending_apps',
-          fetchFunction: () => _api.get('/apps/trending'),
-          fromJson: (json) => (json as List).map((a) => AppModel.fromJson(a)).toList(),
-          forceRefresh: forceRefresh,
-        ),
-        _cache.fetchWithCache<List<AppModel>>(
-          cacheKey: 'new_apps',
-          fetchFunction: () => _api.get('/apps/new'),
-          fromJson: (json) => (json as List).map((a) => AppModel.fromJson(a)).toList(),
-          forceRefresh: forceRefresh,
-        ),
-        _cache.fetchWithCache<AppModel?>(
-          cacheKey: 'daily_featured',
-          fetchFunction: () => _api.get('/apps/daily-featured'),
-          fromJson: (json) => json != null ? AppModel.fromJson(json) : null,
-          forceRefresh: forceRefresh,
-        ),
-      ]);
-      
-      _trending = results[0] as List<AppModel>;
-      _newApps = results[1] as List<AppModel>;
-      _dailyFeatured = results[2] as AppModel?;
-      
-    } catch (e) {
-      if (e is ApiException) {
-        _apiError = e;
-        if (e.type == ApiErrorType.noInternet || e.type == ApiErrorType.serverUnreachable || e.type == ApiErrorType.timeout) {
-          // If we have data, we are in offline mode. If not, it's a hard error.
-          if (_trending.isNotEmpty || _newApps.isNotEmpty) {
-             _isOfflineMode = true;
-             _apiError = null; // Clear error to avoid blocking UI if we have cache
-          }
-        }
-      } else {
-        _apiError = ApiException(ApiErrorType.unknown, e.toString());
-      }
+    bool hadCachedData = false;
+
+    // 1. Show cached data instantly (no spinner)
+    final cachedTrending = _cache.getCached<List<AppModel>>(
+      'trending_apps',
+      (json) => (json as List).map((a) => AppModel.fromJson(a)).toList(),
+    );
+    final cachedNew = _cache.getCached<List<AppModel>>(
+      'new_apps',
+      (json) => (json as List).map((a) => AppModel.fromJson(a)).toList(),
+    );
+    final cachedFeatured = _cache.getCached<AppModel?>(
+      'daily_featured',
+      (json) => json != null ? AppModel.fromJson(json) : null,
+    );
+    if (cachedTrending != null || cachedNew != null) {
+      hadCachedData = true;
+      _trending = cachedTrending ?? [];
+      _newApps = cachedNew ?? [];
+      _dailyFeatured = cachedFeatured;
+      _loading = false;
+      notifyListeners();
     }
-    
+
+    // 2. Fire background refresh
+    final results = await Future.wait([
+      _cache.tryFetchAndCache<List<AppModel>>(
+        cacheKey: 'trending_apps',
+        fetchFunction: () => _api.get('/apps/trending'),
+        fromJson: (json) => (json as List).map((a) => AppModel.fromJson(a)).toList(),
+      ),
+      _cache.tryFetchAndCache<List<AppModel>>(
+        cacheKey: 'new_apps',
+        fetchFunction: () => _api.get('/apps/new'),
+        fromJson: (json) => (json as List).map((a) => AppModel.fromJson(a)).toList(),
+      ),
+      _cache.tryFetchAndCache<AppModel?>(
+        cacheKey: 'daily_featured',
+        fetchFunction: () => _api.get('/apps/daily-featured'),
+        fromJson: (json) => json != null ? AppModel.fromJson(json) : null,
+      ),
+    ]);
+
+    final allSucceeded = results.every((r) => r);
+
+    if (allSucceeded) {
+      // Fresh data landed — update UI with the cache we just wrote
+      final freshTrending = _cache.getCached<List<AppModel>>(
+        'trending_apps',
+        (json) => (json as List).map((a) => AppModel.fromJson(a)).toList(),
+      );
+      final freshNew = _cache.getCached<List<AppModel>>(
+        'new_apps',
+        (json) => (json as List).map((a) => AppModel.fromJson(a)).toList(),
+      );
+      final freshFeatured = _cache.getCached<AppModel?>(
+        'daily_featured',
+        (json) => json != null ? AppModel.fromJson(json) : null,
+      );
+      _trending = freshTrending ?? _trending;
+      _newApps = freshNew ?? _newApps;
+      _dailyFeatured = freshFeatured ?? _dailyFeatured;
+      _isOfflineMode = false;
+    } else if (hadCachedData) {
+      _isOfflineMode = true;
+    } else {
+      _apiError = ApiException(ApiErrorType.noInternet, 'No internet connection');
+    }
+
     _loading = false;
     notifyListeners();
   }
 
   Future<void> loadAppDetail(String id) async {
     _loading = true;
-    try {
-      // Not caching individual app details for now to keep it simple, 
-      // but we could use _cache.fetchWithCache here as well if needed.
-      final res = await _api.get('/apps/$id');
-      _selectedApp = AppModel.fromJson(res);
-      await _api.post('/apps/$id/view');
-    } catch (_) {}
-    _loading = false;
+    final cacheKey = 'app_detail_$id';
+
+    // 1. Show cached detail instantly
+    final cached = _cache.getCached<AppModel>(
+      cacheKey,
+      (json) => AppModel.fromJson(json),
+    );
+    if (cached != null) {
+      _selectedApp = cached;
+      _loading = false;
+      notifyListeners();
+    }
+
+    // 2. Background refresh
+    final ok = await _cache.tryFetchAndCache<AppModel>(
+      cacheKey: cacheKey,
+      fetchFunction: () => _api.get('/apps/$id'),
+      fromJson: (json) => AppModel.fromJson(json),
+    );
+    if (ok) {
+      final fresh = _cache.getCached<AppModel>(
+        cacheKey,
+        (json) => AppModel.fromJson(json),
+      );
+      _selectedApp = fresh ?? _selectedApp;
+    }
+    // Silently stay on cached data if fetch fails
+
+    try { await _api.post('/apps/$id/view'); } catch (_) {}
+    if (cached == null) _loading = false;
     notifyListeners();
   }
 
@@ -121,13 +170,31 @@ class AppProvider extends ChangeNotifier {
 
   Future<void> loadCategoryApps(String slug) async {
     _loading = true;
-    try {
-      final res = await _api.get('/apps', queryParams: {'category': slug});
-      _categoryApps = (res['apps'] as List)
-          .map((a) => AppModel.fromJson(a))
-          .toList();
-    } catch (_) {}
-    _loading = false;
+    final cacheKey = 'category_apps_$slug';
+
+    final cached = _cache.getCached<List<AppModel>>(
+      cacheKey,
+      (json) => (json as List).map((a) => AppModel.fromJson(a)).toList(),
+    );
+    if (cached != null) {
+      _categoryApps = cached;
+      _loading = false;
+      notifyListeners();
+    }
+
+    final ok = await _cache.tryFetchAndCache<List<AppModel>>(
+      cacheKey: cacheKey,
+      fetchFunction: () => _api.get('/apps', queryParams: {'category': slug}),
+      fromJson: (json) => (json as List).map((a) => AppModel.fromJson(a)).toList(),
+    );
+    if (ok) {
+      final fresh = _cache.getCached<List<AppModel>>(
+        cacheKey,
+        (json) => (json as List).map((a) => AppModel.fromJson(a)).toList(),
+      );
+      _categoryApps = fresh ?? _categoryApps;
+    }
+    if (cached == null) _loading = false;
     notifyListeners();
   }
 

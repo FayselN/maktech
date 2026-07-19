@@ -16,6 +16,35 @@ class CacheService {
     _cacheBox = await Hive.openBox(_boxName);
   }
 
+  /// Instant synchronous cache read — returns null if nothing cached
+  T? getCached<T>(String cacheKey, T Function(dynamic json) fromJson) {
+    final cachedJsonStr = _cacheBox.get(cacheKey);
+    if (cachedJsonStr == null) return null;
+    try {
+      final decoded = jsonDecode(cachedJsonStr);
+      return fromJson(decoded);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Background fetch: try to get fresh data, on success update cache, on failure do nothing.
+  /// Returns true if the fetch succeeded, false otherwise.
+  Future<bool> tryFetchAndCache<T>({
+    required String cacheKey,
+    required Future<dynamic> Function() fetchFunction,
+    required T Function(dynamic json) fromJson,
+  }) async {
+    try {
+      final responseData = await fetchFunction();
+      await _cacheBox.put(cacheKey, jsonEncode(responseData));
+      await _cacheBox.put('${cacheKey}_updated_at', DateTime.now().toIso8601String());
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
   /// Generic fetch with caching strategy:
   /// 1. Check cache for instant UI
   /// 2. Try fetching fresh data
