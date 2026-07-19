@@ -4,7 +4,7 @@
     <uses-permission android:name="android.permission.INTERNET"/>
 
     <application
-        android:label="maktech"
+        android:label="Mak Tech — App Discovery"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

@@ -3,6 +3,7 @@ import '../services/api_service.dart';
 import '../models/notification_model.dart';
 import '../theme/app_theme.dart';
 import 'app_detail_screen.dart';
+import 'privacy_policy_screen.dart';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
@@ -90,6 +91,23 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 }
               },
             ),
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert),
+            onSelected: (value) {
+              if (value == 'privacy') {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const PrivacyPolicyScreen()),
+                );
+              }
+            },
+            itemBuilder: (_) => [
+              const PopupMenuItem(
+                value: 'privacy',
+                child: Text('Privacy Policy'),
+              ),
+            ],
+          ),
         ],
       ),
       body: _loading
