@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../providers/app_provider.dart';
 import '../providers/favorite_provider.dart';
 import '../services/api_service.dart';
+import '../services/cache_service.dart';
 import '../models/category_model.dart';
 import '../models/app_model.dart';
 import '../theme/app_theme.dart';
@@ -39,17 +40,61 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  Future<void> _loadCategories() async {
+  Future<void> _loadCategories({bool forceRefresh = false}) async {
     try {
-      final res = await ApiService().get('/categories');
+      final data = await CacheService().fetchWithCache<List<CategoryModel>>(
+        cacheKey: 'categories_data',
+        fetchFunction: () => ApiService().get('/categories'),
+        fromJson: (json) => (json as List).map((c) => CategoryModel.fromJson(c)).toList(),
+        forceRefresh: forceRefresh,
+      );
       if (mounted) {
-        setState(
-          () => _categories = (res as List)
-              .map((c) => CategoryModel.fromJson(c))
-              .toList(),
-        );
+        setState(() => _categories = data);
       }
     } catch (_) {}
+  }
+
+  Widget _buildErrorState(ApiException error, VoidCallback onRetry) {
+    String message = 'Something went wrong';
+    IconData icon = Icons.error_outline;
+
+    switch (error.type) {
+      case ApiErrorType.noInternet:
+        message = 'No internet connection';
+        icon = Icons.wifi_off;
+        break;
+      case ApiErrorType.timeout:
+        message = 'Taking longer than usual — please try again';
+        icon = Icons.hourglass_empty;
+        break;
+      case ApiErrorType.serverUnreachable:
+        message = 'Server is temporarily unavailable';
+        icon = Icons.cloud_off;
+        break;
+      default:
+        message = error.message.isNotEmpty ? error.message : 'Something went wrong';
+    }
+
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, size: 64, color: AppTheme.textSecondary),
+          const SizedBox(height: 16),
+          Text(message, style: const TextStyle(fontSize: 16, color: AppTheme.text)),
+          const SizedBox(height: 24),
+          ElevatedButton(
+            onPressed: onRetry,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.primary,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            ),
+            child: const Text('Retry'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -79,71 +124,80 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       body: RefreshIndicator(
         onRefresh: () async {
-          await context.read<AppProvider>().loadHomeData();
-          await _loadCategories();
+          await context.read<AppProvider>().loadHomeData(forceRefresh: true);
+          await _loadCategories(forceRefresh: true);
         },
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (appProv.error != null) ...[
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(12),
-                  margin: const EdgeInsets.only(bottom: 16),
-                  decoration: BoxDecoration(
-                    color: AppTheme.error.withValues(alpha: 0.08),
-                    border: Border.all(
-                      color: AppTheme.error.withValues(alpha: 0.25),
+        child: appProv.loading && appProv.trending.isEmpty 
+            ? const Center(child: CircularProgressIndicator()) 
+            : appProv.apiError != null 
+                ? _buildErrorState(appProv.apiError!, () {
+                    context.read<AppProvider>().loadHomeData(forceRefresh: true);
+                    _loadCategories(forceRefresh: true);
+                  })
+                : SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (appProv.isOfflineMode)
+                          Container(
+                            width: double.infinity,
+                            color: Colors.orange.shade100,
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                            child: const Center(
+                              child: Text(
+                                'You\'re offline — showing saved content', 
+                                style: TextStyle(fontSize: 12, color: Colors.orange)
+                              ),
+                            ),
+                          ),
+                        Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              if (appProv.dailyFeatured != null)
+                                _buildDailyFeatured(appProv.dailyFeatured!),
+                              const SizedBox(height: 20),
+                              _buildSectionHeader('Categories', () {}),
+                              const SizedBox(height: 12),
+                              _buildCategories(),
+                              const SizedBox(height: 24),
+                              _buildSectionHeader('Trending', () {}),
+                              const SizedBox(height: 12),
+                              _buildAppList(appProv.trending, favProv),
+                              const SizedBox(height: 24),
+                              _buildSectionHeader('New Apps', () {}),
+                              const SizedBox(height: 12),
+                              _buildAppList(appProv.newApps, favProv),
+                              const SizedBox(height: 24),
+                              _buildSectionHeader(
+                                'Recently Viewed',
+                                () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => const RecentlyViewedScreen(),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              _buildAppList(appProv.recentlyViewed.take(5).toList(), favProv),
+                              const SizedBox(height: 24),
+                              _buildSectionHeader(
+                                'Favorites',
+                                () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (_) => const FavoritesScreen()),
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              _buildAppList(favProv.favorites.take(5).toList(), favProv),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
-                    borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Text(
-                    appProv.error!,
-                    style: const TextStyle(color: AppTheme.error),
-                  ),
-                ),
-              ],
-              if (appProv.dailyFeatured != null)
-                _buildDailyFeatured(appProv.dailyFeatured!),
-              const SizedBox(height: 20),
-              _buildSectionHeader('Categories', () {}),
-              const SizedBox(height: 12),
-              _buildCategories(),
-              const SizedBox(height: 24),
-              _buildSectionHeader('Trending', () {}),
-              const SizedBox(height: 12),
-              _buildAppList(appProv.trending, favProv),
-              const SizedBox(height: 24),
-              _buildSectionHeader('New Apps', () {}),
-              const SizedBox(height: 12),
-              _buildAppList(appProv.newApps, favProv),
-              const SizedBox(height: 24),
-              _buildSectionHeader(
-                'Recently Viewed',
-                () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const RecentlyViewedScreen(),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
-              _buildAppList(appProv.recentlyViewed.take(5).toList(), favProv),
-              const SizedBox(height: 24),
-              _buildSectionHeader(
-                'Favorites',
-                () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const FavoritesScreen()),
-                ),
-              ),
-              const SizedBox(height: 12),
-              _buildAppList(favProv.favorites.take(5).toList(), favProv),
-            ],
-          ),
-        ),
       ),
     );
   }
@@ -281,8 +335,8 @@ class _HomeScreenState extends State<HomeScreen> {
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: _categories.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 10),
-        itemBuilder: (_, i) => CategoryChip(
+        separatorBuilder: (context, index) => const SizedBox(width: 10),
+        itemBuilder: (context, i) => CategoryChip(
           category: _categories[i],
           onTap: () => Navigator.push(
             context,

@@ -590,7 +590,7 @@ class _AppDetailScreenState extends State<AppDetailScreen> {
               decoration: BoxDecoration(
                 border: Border.all(color: AppTheme.border),
                 borderRadius: BorderRadius.circular(12),
-                color: Colors.white,
+                color: AppTheme.border,
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -641,8 +641,8 @@ class _AppDetailScreenState extends State<AppDetailScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppTheme.primary.withValues(alpha: .04),
-        border: Border.all(color: AppTheme.primary.withValues(alpha: .16)),
+        color: AppTheme.border,
+        border: Border.all(color: AppTheme.border),
         borderRadius: BorderRadius.circular(14),
       ),
       child: Form(

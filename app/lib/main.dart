@@ -7,6 +7,7 @@ import 'providers/app_provider.dart';
 import 'providers/favorite_provider.dart';
 import 'services/api_service.dart';
 import 'services/notification_service.dart';
+import 'services/cache_service.dart';
 import 'theme/app_theme.dart';
 import 'screens/splash_screen.dart';
 
@@ -24,6 +25,7 @@ void main() async {
   
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
   
+  await CacheService().init();
   await ApiService().init();
   await NotificationService().init();
 

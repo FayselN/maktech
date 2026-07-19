@@ -1,7 +1,21 @@
 import 'dart:convert';
+import 'dart:io';
+import 'dart:async';
 import 'package:http/http.dart' as http;
+import 'package:connectivity_plus/connectivity_plus.dart';
 import '../config/api_config.dart';
 import '../utils/device_utils.dart';
+
+enum ApiErrorType { noInternet, serverUnreachable, timeout, unknown }
+
+class ApiException implements Exception {
+  final ApiErrorType type;
+  final String message;
+  ApiException(this.type, this.message);
+
+  @override
+  String toString() => message;
+}
 
 class ApiService {
   final http.Client _client = http.Client();
@@ -21,39 +35,64 @@ class ApiService {
     return headers;
   }
 
+  Future<void> _checkConnectivity() async {
+    final connectivityResults = await Connectivity().checkConnectivity();
+    if (connectivityResults.contains(ConnectivityResult.none)) {
+      throw ApiException(ApiErrorType.noInternet, 'No internet connection');
+    }
+  }
+
+  Future<dynamic> _executeRequest(Future<http.Response> Function() requestFunc) async {
+    await _checkConnectivity();
+    try {
+      final response = await requestFunc();
+      return _handleResponse(response);
+    } on SocketException {
+      throw ApiException(ApiErrorType.serverUnreachable, 'Server unreachable');
+    } on TimeoutException {
+      throw ApiException(ApiErrorType.timeout, 'Request timed out');
+    } on ApiException {
+      rethrow;
+    } catch (e) {
+      throw ApiException(ApiErrorType.unknown, 'Something went wrong: $e');
+    }
+  }
+
   Future<dynamic> get(String path, {Map<String, String>? queryParams}) async {
     final uri = Uri.parse('${ApiConfig.baseUrl}$path')
         .replace(queryParameters: queryParams);
-    final response = await _client.get(uri, headers: _headers)
-        .timeout(ApiConfig.timeout);
-    return _handleResponse(response);
+    return _executeRequest(
+      () => _client.get(uri, headers: _headers).timeout(ApiConfig.timeout),
+    );
   }
 
   Future<dynamic> post(String path, {Map<String, dynamic>? body}) async {
     final uri = Uri.parse('${ApiConfig.baseUrl}$path');
-    final response = await _client.post(
-      uri, 
-      headers: _headers, 
-      body: body != null ? jsonEncode(body) : null,
-    ).timeout(ApiConfig.timeout);
-    return _handleResponse(response);
+    return _executeRequest(
+      () => _client.post(
+        uri,
+        headers: _headers,
+        body: body != null ? jsonEncode(body) : null,
+      ).timeout(ApiConfig.timeout),
+    );
   }
 
   Future<dynamic> put(String path, {Map<String, dynamic>? body}) async {
     final uri = Uri.parse('${ApiConfig.baseUrl}$path');
-    final response = await _client.put(
-      uri, 
-      headers: _headers, 
-      body: body != null ? jsonEncode(body) : null,
-    ).timeout(ApiConfig.timeout);
-    return _handleResponse(response);
+    return _executeRequest(
+      () => _client.put(
+        uri,
+        headers: _headers,
+        body: body != null ? jsonEncode(body) : null,
+      ).timeout(ApiConfig.timeout),
+    );
   }
 
   Future<dynamic> delete(String path) async {
     final uri = Uri.parse('${ApiConfig.baseUrl}$path');
-    final response = await _client.delete(uri, headers: _headers)
-        .timeout(ApiConfig.timeout);
-    return _handleResponse(response);
+    return _executeRequest(
+      () => _client.delete(uri, headers: _headers).timeout(ApiConfig.timeout),
+    );
   }
 
   dynamic _handleResponse(http.Response response) {
@@ -63,6 +102,7 @@ class ApiService {
       body = jsonDecode(response.body);
     } on FormatException {
       throw ApiException(
+        ApiErrorType.serverUnreachable,
         'Server returned an unexpected response (status ${response.statusCode}). '
         'The server may be starting up — please try again in a moment.',
       );
@@ -71,16 +111,13 @@ class ApiService {
     if (response.statusCode >= 200 && response.statusCode < 300) {
       return body;
     }
+    
+    final errorMessage = (body is Map ? body['message'] ?? body['error'] : null) as String? ??
+          'Request failed (${response.statusCode})';
+          
     throw ApiException(
-      (body is Map ? body['message'] ?? body['error'] : null) as String? ??
-          'Request failed (${response.statusCode})',
+      ApiErrorType.unknown,
+      errorMessage,
     );
   }
-}
-
-class ApiException implements Exception {
-  final String message;
-  ApiException(this.message);
-  @override
-  String toString() => message;
 }

@@ -137,8 +137,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       color: n.isRead
-                          ? Colors.white
-                          : AppTheme.primary.withValues(alpha: 0.03),
+                          ? AppTheme.surface
+                          : AppTheme.border,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
                         color: n.isRead

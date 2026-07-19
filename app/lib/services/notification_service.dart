@@ -35,7 +35,6 @@ class NotificationService {
         'MakTech Notifications',
         description: 'Notifications from Mak Tech',
         importance: Importance.high,
-        priority: Priority.high,
       );
       await _localNotifications
           .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
