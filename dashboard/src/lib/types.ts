@@ -2,95 +2,90 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  profileImage: string | null;
-  role: 'user' | 'admin';
-}
-
-export interface Category {
-  _id: string;
-  name: string;
-  slug: string;
-  iconUrl: string | null;
-  sortOrder: number;
-}
-
-export interface Screenshot {
-  _id: string;
-  url: string;
-  order: number;
-}
-
-export interface RatingStats {
-  average: number;
-  count: number;
+  role: 'admin';
 }
 
 export interface App {
   _id: string;
+  id?: string;
   name: string;
-  slug: string;
-  searchCode: string;
-  curiosityTitle: string;
-  shortDescription: string;
-  longDescription: string;
-  developerName?: string;
-  packageName: string;
-  playStoreUrl: string;
+  description: string;
   iconUrl: string;
-  priceType: 'free' | 'paid' | 'freemium';
-  playStoreRating: number;
-  categories: string[];
-  screenshots: Screenshot[];
-  features: string[];
-  pros: string[];
-  cons: string[];
-  ratingStats: RatingStats;
-  status: 'draft' | 'published';
-  isNewApp: boolean;
+  iconColor: string;
+  category: string;
+  rating: number;
+  ratingCount: string;
+  downloadCount: number;
+  status: 'published' | 'draft';
   viewCount: number;
   favoriteCount: number;
-  createdAt: string;
-  updatedAt: string;
+  isNew?: boolean;
+  isTrending?: boolean;
+  isDailyFeatured?: boolean;
+  curiosityTitle?: string;
+  shortDescription?: string;
+  longDescription?: string;
+  screenshots?: any[];
+  reviews?: any[];
+  searchCode?: string;
+  packageName?: string;
+  priceType?: 'free' | 'paid' | 'freemium';
+  playStoreUrl?: string;
+  playStoreRating?: number;
+  developerName?: string;
+}
+
+export interface CategoryModel {
+  id: string;
+  name: string;
+  color: string;
+  icon: string;
+}
+
+export interface AppNotification {
+  id: string;
+  title: string;
+  message: string;
+  timestamp: string;
+  isRead: boolean;
+  appId?: string;
+  type?: string;
 }
 
 export interface Review {
-  _id: string;
-  appId: string;
-  userId: { _id: string; name: string; profileImage?: string };
+  id: string;
+  username: string;
   rating: number;
+  date: string;
   comment: string;
-  createdAt: string;
-}
-
-export interface DailyFeatured {
-  _id: string;
-  appId: App;
-  featuredDate: string;
-}
-
-export interface Notification {
-  _id: string;
-  title: string;
-  body: string;
-  appId: string | null;
-  type: 'new_app' | 'trending' | 'general';
-  sentBy: { _id: string; name: string };
-  sentAt: string;
 }
 
 export interface ActivityLog {
   _id: string;
-  adminId: { _id: string; name: string; email: string };
   action: string;
+  adminId?: { name?: string };
   targetType: string;
-  targetId: string;
-  changes: Record<string, unknown>;
+  changes?: any;
   createdAt: string;
 }
 
 export interface Pagination {
   page: number;
+  pages: number;
   limit: number;
   total: number;
-  pages: number;
+}
+
+export interface Stats {
+  totalApps: number;
+  publishedApps: number;
+  draftApps: number;
+  totalReviews: number;
+  totalViews: number;
+  totalFavorites: number;
+}
+
+export interface ApiError {
+  message: string;
+  type?: string;
 }

@@ -2,10 +2,11 @@
 
 import { useState, type ChangeEvent, type FormEvent } from 'react';
 import { useAuth } from '@/lib/auth';
+import { api } from '@/lib/api';
 import { AlertCircle, CheckCircle, Loader2, Lock } from 'lucide-react';
 
 export default function SettingsPage() {
-  const { user, token, logout } = useAuth();
+  const { user, logout } = useAuth();
   const [formData, setFormData] = useState({
     currentPassword: '',
     newPassword: '',
@@ -57,33 +58,21 @@ export default function SettingsPage() {
     setSuccess('');
 
     try {
-      const response = await fetch('/api/admin/auth/change-password', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,        },
-        body: JSON.stringify({
-          currentPassword: formData.currentPassword,
-          newPassword: formData.newPassword,
-        }),
+      await api.post('/admin/auth/change-password', {
+        currentPassword: formData.currentPassword,
+        newPassword: formData.newPassword,
       });
 
-      const data = await response.json();
-      
-      if (response.ok) {
-        setSuccess('Password changed successfully!');
-        setShowSuccessModal(true);
-        setFormData((prev) => ({
-          ...prev,
-          currentPassword: '',
-          newPassword: '',
-          confirmPassword: '',
-        }));
-      } else {
-        setError(data.message || 'Failed to change password');
-      }
+      setSuccess('Password changed successfully!');
+      setShowSuccessModal(true);
+      setFormData((prev) => ({
+        ...prev,
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: '',
+      }));
     } catch (err) {
-      setError('Network error. Please try again.');
+      setError(err instanceof Error ? err.message : 'Network error. Please try again.');
     } finally {
       setLoading(false);
     }
