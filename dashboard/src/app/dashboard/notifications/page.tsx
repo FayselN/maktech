@@ -29,7 +29,7 @@ export default function NotificationsPage() {
   const filteredApps = apps.filter(
     (a) =>
       a.name.toLowerCase().includes(search.toLowerCase()) ||
-      a.packageName.toLowerCase().includes(search.toLowerCase())
+      (a.packageName || '').toLowerCase().includes(search.toLowerCase())
   );
 
   const handleSubmit = async (e: React.FormEvent) => {

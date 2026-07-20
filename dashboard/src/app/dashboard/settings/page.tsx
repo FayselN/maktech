@@ -6,7 +6,7 @@ import { api } from '@/lib/api';
 import { AlertCircle, CheckCircle, Loader2, Lock } from 'lucide-react';
 
 export default function SettingsPage() {
-  const { user, logout } = useAuth();
+  const { logout } = useAuth();
   const [formData, setFormData] = useState({
     currentPassword: '',
     newPassword: '',

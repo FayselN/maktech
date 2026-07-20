@@ -33,7 +33,7 @@ export default function FeaturedPage() {
   const filteredApps = apps.filter(
     (a) =>
       a.name.toLowerCase().includes(search.toLowerCase()) ||
-      a.packageName.toLowerCase().includes(search.toLowerCase())
+      (a.packageName || '').toLowerCase().includes(search.toLowerCase())
   );
 
   const handleSubmit = async (e: React.FormEvent) => {

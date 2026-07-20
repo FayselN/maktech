@@ -58,7 +58,6 @@ const emptyForm: FormData = {
 export default function AppForm({ app, onSuccess }: Props) {
   const [form, setForm] = useState(emptyForm);
   const [allCategories, setAllCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
 
@@ -91,18 +90,6 @@ export default function AppForm({ app, onSuccess }: Props) {
       });
     }
   }, [app]);
-
-  const addItem = (list: ListItem[], setter: (items: ListItem[]) => void) => {
-    setter([...list, { id: crypto.randomUUID(), value: '' }]);
-  };
-
-  const updateItem = (list: ListItem[], setter: (items: ListItem[]) => void, id: string, value: string) => {
-    setter(list.map((item) => item.id === id ? { ...item, value } : item));
-  };
-
-  const removeItem = (list: ListItem[], setter: (items: ListItem[]) => void, id: string) => {
-    setter(list.filter((item) => item.id !== id));
-  };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();

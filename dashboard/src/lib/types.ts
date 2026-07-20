@@ -9,10 +9,11 @@ export interface App {
   _id: string;
   id?: string;
   name: string;
+  slug: string;
   description: string;
   iconUrl: string;
   iconColor: string;
-  category: string;
+  categories: string[];
   rating: number;
   ratingCount: string;
   downloadCount: number;
@@ -25,6 +26,10 @@ export interface App {
   curiosityTitle?: string;
   shortDescription?: string;
   longDescription?: string;
+  ratingStats?: {
+    average: number;
+    count: number;
+  };
   screenshots?: any[];
   reviews?: any[];
   searchCode?: string;
@@ -33,6 +38,17 @@ export interface App {
   playStoreUrl?: string;
   playStoreRating?: number;
   developerName?: string;
+  features?: string[];
+  pros?: string[];
+  cons?: string[];
+}
+
+export interface Category {
+  _id: string;
+  name: string;
+  slug: string;
+  iconUrl?: string;
+  sortOrder: number;
 }
 
 export interface CategoryModel {

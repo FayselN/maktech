@@ -57,14 +57,14 @@ class ApiClient {
   post<T>(path: string, body?: unknown) {
     return this.request<T>(path, {
       method: 'POST',
-      body: body ? JSON.stringify(body) : undefined,
+      body: body ? JSON.stringify(body) : null,
     });
   }
 
   put<T>(path: string, body?: unknown) {
     return this.request<T>(path, {
       method: 'PUT',
-      body: body ? JSON.stringify(body) : undefined,
+      body: body ? JSON.stringify(body) : null,
     });
   }
 
