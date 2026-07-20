@@ -14,6 +14,7 @@ const navItems = [
   { href: '/dashboard/featured', label: 'Daily Featured', icon: Star },
   { href: '/dashboard/notifications', label: 'Notifications', icon: Bell },
   { href: '/dashboard/activity', label: 'Activity Log', icon: Activity },
+  { href: '/dashboard/settings', label: 'Settings', icon: ShieldAlert },
 ];
 
 export default function Sidebar() {

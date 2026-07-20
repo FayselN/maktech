@@ -32,21 +32,14 @@ class _SplashScreenState extends State<SplashScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [AppTheme.primary, AppTheme.primaryDark],
-                ),
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(color: AppTheme.primary.withValues(alpha: 0.3), blurRadius: 20, spreadRadius: 2),
-                ],
+            ClipRRect(
+              borderRadius: BorderRadius.circular(20),
+              child: Image.asset(
+                'assets/images/logo.png',
+                width: 80,
+                height: 80,
+                fit: BoxFit.cover,
               ),
-              child: const Icon(Icons.explore, size: 40, color: Colors.white),
             ),
             const SizedBox(height: 16),
             const Text('Mak Tech', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: AppTheme.text)),
