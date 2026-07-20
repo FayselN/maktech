@@ -6,6 +6,7 @@ import 'search_screen.dart';
 import 'favorites_screen.dart';
 import 'recently_viewed_screen.dart';
 import 'notifications_screen.dart';
+import 'settings_screen.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -23,6 +24,7 @@ class _MainScreenState extends State<MainScreen> {
     const FavoritesScreen(),
     const RecentlyViewedScreen(),
     const NotificationsScreen(),
+    const SettingsScreen(),
   ];
 
   @override
@@ -33,7 +35,7 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 
-  Widget _buildBottomNav() {
+    Widget _buildBottomNav() {
     return ClipRect(
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
@@ -54,7 +56,7 @@ class _MainScreenState extends State<MainScreen> {
                   _navItem(Icons.search, 'Search', 1),
                   _navItem(Icons.favorite_outline, 'Favorites', 2),
                   _navItem(Icons.history, 'Recent', 3),
-                  _navItem(Icons.notifications_outlined, 'Alerts', 4),
+                  _navItem(Icons.settings, 'Settings', 5),
                 ],
               ),
             ),

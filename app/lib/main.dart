@@ -10,6 +10,8 @@ import 'services/notification_service.dart';
 import 'services/cache_service.dart';
 import 'theme/app_theme.dart';
 import 'screens/splash_screen.dart';
+import 'screens/main_screen.dart';
+import 'screens/settings_screen.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -49,7 +51,7 @@ class MakTechApp extends StatelessWidget {
       title: 'Mak Tech',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
-      home: const SplashScreen(),
+      home: const MainScreen(),
     );
   }
 }
