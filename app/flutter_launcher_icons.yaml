@@ -1,0 +1,21 @@
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/images/logo.png"
+  min_sdk_android: 21
+
+  # Android adaptive icon (API 26+) — uses logo on dark navy background
+  adaptive_icon_background: "#0f1116"
+  adaptive_icon_foreground: "assets/images/logo.png"
+
+  # Web (optional)
+  web:
+    generate: false
+
+  # Windows (optional)
+  windows:
+    generate: false
+
+  # macOS (optional)
+  macos:
+    generate: false

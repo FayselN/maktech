@@ -16,3 +16,7 @@
 # Keep your application class
 -keep class * extends io.flutter.app.FlutterApplication
 -keep class * extends io.flutter.embedding.android.FlutterActivity
+
+# Play Store dynamic feature support (needed by Flutter's PlayStoreDeferredComponentManager)
+-dontwarn com.google.android.play.core.**
+-keep class com.google.android.play.core.** { *; }

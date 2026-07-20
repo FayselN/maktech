@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Mak Tech — Logo Concepts</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #0f1116;
+    color: #eaeaf0;
+    padding: 40px 24px;
+  }
+  h1 {
+    text-align: center;
+    font-size: 22px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .sub {
+    text-align: center;
+    color: #8b8d98;
+    font-size: 14px;
+    margin-bottom: 40px;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+  .card {
+    background: #1a1d27;
+    border: 1px solid #2a2d3a;
+    border-radius: 16px;
+    padding: 28px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+  }
+  .card svg { width: 96px; height: 96px; }
+  .label {
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .desc {
+    font-size: 12px;
+    color: #8b8d98;
+    text-align: center;
+    line-height: 1.5;
+  }
+  .wordmark {
+    margin-top: 60px;
+    max-width: 900px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .wordmark h2 {
+    font-size: 15px;
+    color: #8b8d98;
+    font-weight: 500;
+    margin-bottom: 16px;
+    text-align: center;
+  }
+  .wrow {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 14px;
+    background: #1a1d27;
+    border: 1px solid #2a2d3a;
+    border-radius: 16px;
+    padding: 20px;
+  }
+  .wrow svg { width: 44px; height: 44px; }
+  .wrow span {
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+  }
+  .wrow .tech { color: #8b8d98; font-weight: 500; }
+</style>
+</head>
+<body>
+
+<h1>Mak Tech — Logo Concepts</h1>
+<div class="sub">Magnifying glass + app icon · Blue/Purple palette</div>
+
+<div class="grid">
+
+  <!-- Concept 1: Minimal flat -->
+  <div class="card">
+    <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="18" y="18" width="44" height="44" rx="12" fill="#5B5FEF"/>
+      <rect x="30" y="30" width="8" height="8" rx="2" fill="white"/>
+      <rect x="42" y="30" width="8" height="8" rx="2" fill="white" fill-opacity="0.85"/>
+      <rect x="30" y="42" width="8" height="8" rx="2" fill="white" fill-opacity="0.85"/>
+      <rect x="42" y="42" width="8" height="8" rx="2" fill="white" fill-opacity="0.6"/>
+      <circle cx="66" cy="66" r="16" fill="none" stroke="#0f1116" stroke-width="7"/>
+      <circle cx="66" cy="66" r="16" fill="none" stroke="#8B5CF6" stroke-width="5"/>
+      <line x1="77" y1="77" x2="86" y2="86" stroke="#8B5CF6" stroke-width="6" stroke-linecap="round"/>
+    </svg>
+    <div class="label">1 · Minimal Flat</div>
+    <div class="desc">Rounded app tile + clean magnifier ring overlapping bottom-right. Simple, scales down well to a small icon.</div>
+  </div>
+
+  <!-- Concept 2: Gradient / tech -->
+  <div class="card">
+    <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="g1" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse">
+          <stop stop-color="#6D5CFF"/>
+          <stop offset="1" stop-color="#3B82F6"/>
+        </linearGradient>
+        <linearGradient id="g2" x1="50" y1="50" x2="90" y2="90" gradientUnits="userSpaceOnUse">
+          <stop stop-color="#C084FC"/>
+          <stop offset="1" stop-color="#818CF8"/>
+        </linearGradient>
+      </defs>
+      <rect x="16" y="16" width="46" height="46" rx="14" fill="url(#g1)"/>
+      <circle cx="31" cy="31" r="4.5" fill="white"/>
+      <circle cx="47" cy="31" r="4.5" fill="white" fill-opacity="0.9"/>
+      <circle cx="31" cy="47" r="4.5" fill="white" fill-opacity="0.9"/>
+      <circle cx="47" cy="47" r="4.5" fill="white" fill-opacity="0.7"/>
+      <circle cx="67" cy="67" r="17" fill="none" stroke="#0f1116" stroke-width="8"/>
+      <circle cx="67" cy="67" r="17" fill="none" stroke="url(#g2)" stroke-width="5.5"/>
+      <line x1="79" y1="79" x2="89" y2="89" stroke="url(#g2)" stroke-width="6.5" stroke-linecap="round"/>
+    </svg>
+    <div class="label">2 · Gradient / Tech</div>
+    <div class="desc">Dot-grid tile in blue-purple gradient, glowing magnifier accent. Feels more "AI/tech-forward," good for splash screens.</div>
+  </div>
+
+  <!-- Concept 3: Playful rounded -->
+  <div class="card">
+    <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="42" cy="42" r="26" fill="#4F46E5"/>
+      <rect x="33" y="33" width="9" height="9" rx="3" fill="white"/>
+      <rect x="46" y="33" width="9" height="9" rx="3" fill="#C4B5FD"/>
+      <rect x="33" y="46" width="9" height="9" rx="3" fill="#C4B5FD"/>
+      <rect x="46" y="46" width="9" height="9" rx="3" fill="white"/>
+      <circle cx="68" cy="68" r="15" fill="#F5F3FF" stroke="#4F46E5" stroke-width="5"/>
+      <line x1="78" y1="78" x2="87" y2="87" stroke="#4F46E5" stroke-width="6" stroke-linecap="round"/>
+    </svg>
+    <div class="label">3 · Playful Rounded</div>
+    <div class="desc">Circular badge instead of a square tile, softer and friendlier — good if you want the app to feel approachable, not corporate.</div>
+  </div>
+
+</div>
+
+<div class="wordmark">
+  <h2>How it could pair with the wordmark</h2>
+  <div class="wrow">
+    <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="g3" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse">
+          <stop stop-color="#6D5CFF"/>
+          <stop offset="1" stop-color="#3B82F6"/>
+        </linearGradient>
+      </defs>
+      <rect x="16" y="16" width="46" height="46" rx="14" fill="url(#g3)"/>
+      <circle cx="31" cy="31" r="4.5" fill="white"/>
+      <circle cx="47" cy="31" r="4.5" fill="white" fill-opacity="0.9"/>
+      <circle cx="31" cy="47" r="4.5" fill="white" fill-opacity="0.9"/>
+      <circle cx="47" cy="47" r="4.5" fill="white" fill-opacity="0.7"/>
+      <circle cx="67" cy="67" r="17" fill="none" stroke="#0f1116" stroke-width="8"/>
+      <circle cx="67" cy="67" r="17" fill="none" stroke="#C084FC" stroke-width="5.5"/>
+      <line x1="79" y1="79" x2="89" y2="89" stroke="#C084FC" stroke-width="6.5" stroke-linecap="round"/>
+    </svg>
+    <span>Mak<span class="tech">Tech</span></span>
+  </div>
+</div>
+
+</body>
+</html>
