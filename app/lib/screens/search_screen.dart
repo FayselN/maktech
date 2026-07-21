@@ -54,19 +54,19 @@ class _SearchScreenState extends State<SearchScreen> {
         ],
       ),
       body: _searchController.text.isEmpty
-          ? const Center(
+          ? Center(
               child: Text(
                 'Search for apps by name or description',
-                style: TextStyle(color: AppTheme.textSecondary),
+                style: TextStyle(color: context.appTextSecondary),
               ),
             )
           : appProv.loading
           ? const Center(child: CircularProgressIndicator())
           : appProv.searchResults.isEmpty
-          ? const Center(
+          ? Center(
               child: Text(
                 'No results found',
-                style: TextStyle(color: AppTheme.textSecondary),
+                style: TextStyle(color: context.appTextSecondary),
               ),
             )
           : ListView(

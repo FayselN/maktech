@@ -50,7 +50,7 @@ class _CategoryAppsScreenState extends State<CategoryAppsScreen> {
       body: appProv.loading
         ? const Center(child: CircularProgressIndicator())
         : appProv.categoryApps.isEmpty
-          ? const Center(child: Text('No apps in this category', style: TextStyle(color: AppTheme.textSecondary)))
+          ? Center(child: Text('No apps in this category', style: TextStyle(color: context.appTextSecondary)))
           : ListView(
               padding: const EdgeInsets.all(16),
               children: appProv.categoryApps.map((app) => Padding(

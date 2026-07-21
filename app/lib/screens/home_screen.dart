@@ -79,9 +79,9 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, size: 64, color: AppTheme.textSecondary),
+          Icon(icon, size: 64, color: context.appTextSecondary),
           const SizedBox(height: 16),
-          Text(message, style: const TextStyle(fontSize: 16, color: AppTheme.text)),
+          Text(message, style: TextStyle(fontSize: 16, color: context.appText)),
           const SizedBox(height: 24),
           ElevatedButton(
             onPressed: onRetry,
@@ -306,10 +306,10 @@ class _HomeScreenState extends State<HomeScreen> {
       children: [
         Text(
           title,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
-            color: AppTheme.text,
+            color: context.appText,
           ),
         ),
         if (title != 'Categories')
@@ -351,12 +351,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildAppList(List<AppModel> apps, FavoriteProvider favProv) {
     if (apps.isEmpty) {
-      return const Padding(
-        padding: EdgeInsets.symmetric(vertical: 24),
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 24),
         child: Center(
           child: Text(
             'No apps yet',
-            style: TextStyle(color: AppTheme.textSecondary),
+            style: TextStyle(color: context.appTextSecondary),
           ),
         ),
       );

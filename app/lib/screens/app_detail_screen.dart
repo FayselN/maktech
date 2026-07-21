@@ -157,18 +157,36 @@ class _AppDetailScreenState extends State<AppDetailScreen> {
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
-            expandedHeight: 220,
+            expandedHeight: 260,
             pinned: true,
             flexibleSpace: FlexibleSpaceBar(
               background: Stack(
                 fit: StackFit.expand,
                 children: [
-                  Container(
-                    decoration: const BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [AppTheme.primary, AppTheme.primaryDark],
+                  CachedNetworkImage(
+                    imageUrl: app.screenshots.isNotEmpty
+                        ? app.screenshots.first.url
+                        : app.iconUrl,
+                    fit: BoxFit.cover,
+                    placeholder: (_, __) => Container(
+                      decoration: const BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [AppTheme.primary, AppTheme.primaryDark],
+                        ),
+                      ),
+                    ),
+                    errorWidget: (_, __, ___) => Container(
+                      decoration: const BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [AppTheme.primary, AppTheme.primaryDark],
+                        ),
+                      ),
+                      child: const Center(
+                        child: Icon(Icons.explore, color: Colors.white, size: 64),
                       ),
                     ),
                   ),
@@ -179,7 +197,7 @@ class _AppDetailScreenState extends State<AppDetailScreen> {
                         end: Alignment.bottomCenter,
                         colors: [
                           Colors.transparent,
-                          Colors.black.withValues(alpha: 0.7),
+                          Colors.black.withValues(alpha: 0.75),
                         ],
                       ),
                     ),
@@ -187,10 +205,11 @@ class _AppDetailScreenState extends State<AppDetailScreen> {
                   Positioned(
                     bottom: 16,
                     left: 16,
+                    right: 16,
                     child: Row(
                       children: [
                         ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(14),
                           child: Container(
                             width: 56,
                             height: 56,
@@ -198,17 +217,7 @@ class _AppDetailScreenState extends State<AppDetailScreen> {
                             child: CachedNetworkImage(
                               imageUrl: app.iconUrl,
                               fit: BoxFit.cover,
-                              placeholder: (context, url) => const Center(
-                                child: SizedBox(
-                                  width: 24,
-                                  height: 24,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                                  ),
-                                ),
-                              ),
-                              errorWidget: (context, url, error) => const Icon(
+                              errorWidget: (_, __, ___) => const Icon(
                                 Icons.explore,
                                 color: Colors.white,
                                 size: 28,
@@ -217,19 +226,32 @@ class _AppDetailScreenState extends State<AppDetailScreen> {
                           ),
                         ),
                         const SizedBox(width: 12),
-                        Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              app.curiosityTitle,
-                              style: const TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                app.curiosityTitle,
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
                               ),
-                            ),
-                          ],
+                              const SizedBox(height: 2),
+                              Text(
+                                app.shortDescription,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.white.withValues(alpha: 0.85),
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     ),

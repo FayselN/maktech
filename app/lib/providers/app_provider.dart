@@ -184,7 +184,10 @@ class AppProvider extends ChangeNotifier {
 
     final ok = await _cache.tryFetchAndCache<List<AppModel>>(
       cacheKey: cacheKey,
-      fetchFunction: () => _api.get('/apps', queryParams: {'category': slug}),
+      fetchFunction: () async {
+        final res = await _api.get('/apps', queryParams: {'category': slug});
+        return res['apps'] as List;
+      },
       fromJson: (json) => (json as List).map((a) => AppModel.fromJson(a)).toList(),
     );
     if (ok) {

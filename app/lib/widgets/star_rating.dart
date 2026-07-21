@@ -32,7 +32,7 @@ class StarRating extends StatelessWidget {
             '($count)',
             style: TextStyle(
               fontSize: size - 2,
-              color: AppTheme.textSecondary,
+              color: context.appTextSecondary,
             ),
           ),
         ],

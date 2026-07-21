@@ -2,7 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import 'home_screen.dart';
-import 'search_screen.dart';
+import 'categories_screen.dart';
 import 'favorites_screen.dart';
 import 'recently_viewed_screen.dart';
 import 'notifications_screen.dart';
@@ -20,7 +20,7 @@ class _MainScreenState extends State<MainScreen> {
 
   final List<Widget> _screens = [
     const HomeScreen(isTab: true),
-    const SearchScreen(autofocus: false),
+    const CategoriesScreen(),
     const FavoritesScreen(),
     const RecentlyViewedScreen(),
     const NotificationsScreen(),
@@ -53,7 +53,7 @@ class _MainScreenState extends State<MainScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
                   _navItem(Icons.home, 'Home', 0),
-                  _navItem(Icons.search, 'Search', 1),
+                  _navItem(Icons.category, 'Categories', 1),
                   _navItem(Icons.favorite_outline, 'Favorites', 2),
                   _navItem(Icons.history, 'Recent', 3),
                   _navItem(Icons.settings, 'Settings', 5),
@@ -83,7 +83,7 @@ class _MainScreenState extends State<MainScreen> {
             Icon(
               icon,
               size: 24,
-              color: isSelected ? AppTheme.primary : AppTheme.textSecondary,
+              color: isSelected ? AppTheme.primary : context.appTextSecondary,
             ),
             const SizedBox(height: 4),
             Text(
@@ -91,7 +91,7 @@ class _MainScreenState extends State<MainScreen> {
               style: TextStyle(
                 fontSize: 10,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                color: isSelected ? AppTheme.primary : AppTheme.textSecondary,
+                color: isSelected ? AppTheme.primary : context.appTextSecondary,
               ),
             ),
           ],

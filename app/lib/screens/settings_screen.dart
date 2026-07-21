@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/theme_provider.dart';
 import '../theme/app_theme.dart';
 import 'privacy_policy_screen.dart';
 
@@ -11,7 +13,6 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   bool _notificationsEnabled = true;
-  bool _darkModeEnabled = false;
   bool _offlineModeEnabled = false;
   String _selectedLanguage = 'English';
 
@@ -31,11 +32,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
               _notificationsEnabled,
               (value) => setState(() => _notificationsEnabled = value),
             ),
-            _buildSettingsTile(
-              'Dark Mode',
-              Icons.dark_mode_outlined,
-              _darkModeEnabled,
-              (value) => setState(() => _darkModeEnabled = value),
+            Consumer<ThemeProvider>(
+              builder: (context, themeProv, _) => _buildSettingsTile(
+                'Dark Mode',
+                Icons.dark_mode_outlined,
+                themeProv.isDarkMode,
+                (value) => themeProv.setDarkMode(value),
+              ),
             ),
             _buildSettingsTile(
               'Offline Mode',
@@ -85,7 +88,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w600,
-              color: AppTheme.textSecondary,
+              color: context.appTextSecondary,
             ),
           ),
         ),
@@ -182,7 +185,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               label,
               style: TextStyle(
                 fontSize: 13,
-                color: AppTheme.textSecondary,
+                color: context.appTextSecondary,
                 fontWeight: FontWeight.w500,
               ),
             ),

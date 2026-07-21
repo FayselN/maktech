@@ -28,15 +28,13 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
       body: favProv.loading
         ? const Center(child: CircularProgressIndicator())
         : favProv.favorites.isEmpty
-          ? const Center(
+          ? Center(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.favorite_outline, size: 48, color: AppTheme.textSecondary),
-                  SizedBox(height: 12),
-                  Text('No favorites yet', style: TextStyle(fontSize: 16, color: AppTheme.textSecondary)),
-                  SizedBox(height: 4),
-                  Text('Tap the heart icon to save apps', style: TextStyle(fontSize: 13, color: AppTheme.textSecondary)),
+                  Icon(Icons.favorite_outline, size: 48, color: context.appTextSecondary),
+                  Text('No favorites yet', style: TextStyle(fontSize: 16, color: context.appTextSecondary)),
+                  Text('Tap the heart icon to save apps', style: TextStyle(fontSize: 13, color: context.appTextSecondary)),
                 ],
               ),
             )

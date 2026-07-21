@@ -33,13 +33,13 @@ class _RecentlyViewedScreenState extends State<RecentlyViewedScreen> {
       body: appProv.loading
         ? const Center(child: CircularProgressIndicator())
         : appProv.recentlyViewed.isEmpty
-          ? const Center(
+          ? Center(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.history, size: 48, color: AppTheme.textSecondary),
-                  SizedBox(height: 12),
-                  Text('No recently viewed apps', style: TextStyle(fontSize: 16, color: AppTheme.textSecondary)),
+                  Icon(Icons.history, size: 48, color: context.appTextSecondary),
+                  const SizedBox(height: 12),
+                  Text('No recently viewed apps', style: TextStyle(fontSize: 16, color: context.appTextSecondary)),
                 ],
               ),
             )

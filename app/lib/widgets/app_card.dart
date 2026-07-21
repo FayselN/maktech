@@ -68,10 +68,10 @@ class AppCard extends StatelessWidget {
                   children: [
                     Text(
                       app.curiosityTitle,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontWeight: FontWeight.w600,
                         fontSize: 15,
-                        color: AppTheme.text,
+                        color: context.appText,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -79,9 +79,9 @@ class AppCard extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       app.shortDescription,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 13,
-                        color: AppTheme.textSecondary,
+                        color: context.appTextSecondary,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
@@ -115,10 +115,10 @@ class AppCard extends StatelessWidget {
                               const SizedBox(width: 2),
                               Text(
                                 app.playStoreRating.toString(),
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w600,
-                                  color: AppTheme.textSecondary,
+                                  color: context.appTextSecondary,
                                 ),
                               ),
                             ],
@@ -133,7 +133,7 @@ class AppCard extends StatelessWidget {
                   onPressed: onFavorite,
                   icon: Icon(
                     isFavorited ? Icons.favorite : Icons.favorite_border,
-                    color: isFavorited ? AppTheme.error : AppTheme.textSecondary,
+                    color: isFavorited ? AppTheme.error : context.appTextSecondary,
                     size: 20,
                   ),
                 ),

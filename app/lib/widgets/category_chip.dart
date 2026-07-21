@@ -50,10 +50,10 @@ class CategoryChip extends StatelessWidget {
             const SizedBox(height: 6),
             Text(
               category.name,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w500,
-                color: AppTheme.text,
+                color: context.appText,
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
