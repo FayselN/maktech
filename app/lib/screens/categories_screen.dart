@@ -105,7 +105,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                     width: 40,
                     height: 40,
                     fit: BoxFit.cover,
-                    errorWidget: (_, __, ___) => Container(
+                    errorWidget: (_, _, _) => Container(
                       width: 40,
                       height: 40,
                       decoration: BoxDecoration(

@@ -12,7 +12,12 @@ class CacheService {
   late Box _cacheBox;
 
   Future<void> init() async {
-    await Hive.initFlutter();
+    if (Hive.isBoxOpen(_boxName)) return;
+    try {
+      await Hive.initFlutter();
+    } catch (_) {
+      // Already initialized externally (e.g. in tests)
+    }
     _cacheBox = await Hive.openBox(_boxName);
   }
 

@@ -168,7 +168,7 @@ class _AppDetailScreenState extends State<AppDetailScreen> {
                         ? app.screenshots.first.url
                         : app.iconUrl,
                     fit: BoxFit.cover,
-                    placeholder: (_, __) => Container(
+                    placeholder: (_, _) => Container(
                       decoration: const BoxDecoration(
                         gradient: LinearGradient(
                           begin: Alignment.topLeft,
@@ -177,7 +177,7 @@ class _AppDetailScreenState extends State<AppDetailScreen> {
                         ),
                       ),
                     ),
-                    errorWidget: (_, __, ___) => Container(
+                    errorWidget: (_, _, _) => Container(
                       decoration: const BoxDecoration(
                         gradient: LinearGradient(
                           begin: Alignment.topLeft,
@@ -217,7 +217,7 @@ class _AppDetailScreenState extends State<AppDetailScreen> {
                             child: CachedNetworkImage(
                               imageUrl: app.iconUrl,
                               fit: BoxFit.cover,
-                              errorWidget: (_, __, ___) => const Icon(
+                              errorWidget: (_, _, _) => const Icon(
                                 Icons.explore,
                                 color: Colors.white,
                                 size: 28,

@@ -39,7 +39,7 @@ class _CategoryAppsScreenState extends State<CategoryAppsScreen> {
               borderRadius: BorderRadius.circular(8),
               child: CachedNetworkImage(
                 imageUrl: widget.category.iconUrl ?? '', width: 28, height: 28, fit: BoxFit.cover,
-                errorWidget: (_, __, ___) => const Icon(Icons.category, size: 20, color: AppTheme.primary),
+                errorWidget: (_, _, _) => const Icon(Icons.category, size: 20, color: AppTheme.primary),
               ),
             ),
             const SizedBox(width: 8),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import '../providers/theme_provider.dart';
 import '../theme/app_theme.dart';
@@ -15,6 +16,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _notificationsEnabled = true;
   bool _offlineModeEnabled = false;
   String _selectedLanguage = 'English';
+  String _appVersion = '';
+  String _buildNumber = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadVersion();
+  }
+
+  Future<void> _loadVersion() async {
+    final info = await PackageInfo.fromPlatform();
+    setState(() {
+      _appVersion = info.version;
+      _buildNumber = info.buildNumber;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -118,7 +135,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       trailing: Switch(
         value: value,
         onChanged: onChanged,
-        activeColor: AppTheme.primary,
+        activeThumbColor: AppTheme.primary,
       ),
       onTap: onTap,
     );
@@ -151,8 +168,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildAboutRow('Version:', 'v2.0.0'),
-            _buildAboutRow('Build:', '1.0.0+1'),
+            _buildAboutRow('Version:', 'v$_appVersion'),
+            _buildAboutRow('Build:', '$_appVersion+$_buildNumber'),
             _buildAboutRow('Developer:', 'Mak Tech Team'),
             _buildAboutRow('License:', 'MIT License'),
             _buildAboutRow('Last Updated:', 'July 2026'),

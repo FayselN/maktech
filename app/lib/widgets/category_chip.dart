@@ -36,7 +36,7 @@ class CategoryChip extends StatelessWidget {
                 width: 36,
                 height: 36,
                 fit: BoxFit.cover,
-                errorWidget: (_, __, ___) => Container(
+                errorWidget: (_, _, _) => Container(
                   width: 36,
                   height: 36,
                   decoration: BoxDecoration(

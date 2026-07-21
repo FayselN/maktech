@@ -9,11 +9,18 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
-// Load keystore config from key.properties
+// Load keystore config from key.properties (local) or env vars (CI)
 val keystoreProperties = Properties()
 val keystorePropertiesFile = rootProject.file("key.properties")
 if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(keystorePropertiesFile.inputStream())
+}
+// Fallback to environment variables for CI
+if (System.getenv("KEY_STORE_FILE") != null) {
+    keystoreProperties["storeFile"] = System.getenv("KEY_STORE_FILE")
+    keystoreProperties["storePassword"] = System.getenv("KEY_STORE_PASSWORD")
+    keystoreProperties["keyPassword"] = System.getenv("KEY_PASSWORD")
+    keystoreProperties["keyAlias"] = System.getenv("KEY_ALIAS")
 }
 
 android {

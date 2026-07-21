@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:connectivity_plus/connectivity_plus.dart';
 import '../config/api_config.dart';
@@ -18,12 +19,18 @@ class ApiException implements Exception {
 }
 
 class ApiService {
-  final http.Client _client = http.Client();
+  final http.Client _client;
   String? _deviceId;
 
-  static final ApiService _instance = ApiService._();
-  factory ApiService() => _instance;
-  ApiService._();
+  static final ApiService _instance = ApiService._internal();
+  factory ApiService({http.Client? client}) => _instance;
+  ApiService._internal() : _client = http.Client();
+
+  @visibleForTesting
+  factory ApiService.test({required http.Client client}) {
+    return ApiService._withClient(client);
+  }
+  ApiService._withClient(this._client);
 
   Future<void> init() async {
     _deviceId = await DeviceUtils.getDeviceId();
