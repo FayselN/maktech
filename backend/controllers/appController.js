@@ -5,7 +5,8 @@ const DailyFeatured = require('../models/DailyFeatured');
 
 const list = async (req, res, next) => {
   try {
-    const { category, search, trending, new: isNewApp, page = 1, limit = 20 } = req.query;
+    const { category, search: searchParam, q, trending, new: isNewApp, page = 1, limit = 20 } = req.query;
+    const search = searchParam || q;
 
     const filter = { status: 'published' };
 
@@ -63,7 +64,18 @@ const list = async (req, res, next) => {
 
 const getById = async (req, res, next) => {
   try {
-    const app = await App.findById(req.params.id);
+    const { id } = req.params;
+    let app;
+    if (mongoose.Types.ObjectId.isValid(id)) {
+      app = await App.findById(id);
+    } else {
+      // Fallback: allow lookup by slug or search code
+      app = await App.findOne({ 
+        $or: [{ slug: id }, { searchCode: id }],
+        status: 'published'
+      });
+    }
+
     if (!app) {
       return res.status(404).json({ message: 'App not found' });
     }

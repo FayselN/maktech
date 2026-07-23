@@ -8,6 +8,7 @@ const deviceMiddleware = require('../middleware/deviceMiddleware');
 const router = express.Router();
 
 router.get('/', list);
+router.get('/search', list);
 router.get('/trending', getTrending);
 router.get('/new', getNewApps);
 router.get('/daily-featured', getDailyFeatured);
