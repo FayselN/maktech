@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../providers/app_provider.dart';
 import '../providers/favorite_provider.dart';
@@ -117,21 +117,13 @@ class _AppDetailScreenState extends State<AppDetailScreen> {
     }
   }
 
-  Future<void> _copyLink(String url) async {
-    await Clipboard.setData(ClipboardData(text: url));
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('App link copied'),
-          backgroundColor: AppTheme.card,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-            side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
-          ),
-        ),
-      );
-    }
+  Future<void> _shareApp(String url, String appName) async {
+    await SharePlus.instance.share(
+      ShareParams(
+        text: 'Check out $appName on Mak Tech!\n$url',
+        subject: 'Check out $appName on Mak Tech',
+      ),
+    );
   }
 
   @override
@@ -140,16 +132,13 @@ class _AppDetailScreenState extends State<AppDetailScreen> {
     final app = appProv.selectedApp;
     final favProv = context.watch<FavoriteProvider>();
 
-    if (appProv.loading && app == null) {
+    // Show smooth loading spinner if loading or if the selectedApp belongs to a different app ID
+    if (appProv.loading || app == null || app.id != widget.appId) {
       return Scaffold(
         appBar: AppBar(),
-        body: const Center(child: CircularProgressIndicator()),
-      );
-    }
-    if (app == null) {
-      return Scaffold(
-        appBar: AppBar(),
-        body: const Center(child: Text('App not found')),
+        body: const Center(
+          child: CircularProgressIndicator(),
+        ),
       );
     }
 
@@ -440,7 +429,7 @@ class _AppDetailScreenState extends State<AppDetailScreen> {
                       const SizedBox(width: 8),
                       IconButton.filled(
                         tooltip: 'Share app',
-                        onPressed: () => _copyLink(app.playStoreUrl),
+                        onPressed: () => _shareApp(app.playStoreUrl, app.name),
                         icon: const Icon(Icons.share_outlined),
                         style: IconButton.styleFrom(
                           backgroundColor: AppTheme.primary.withValues(
@@ -623,14 +612,14 @@ class _AppDetailScreenState extends State<AppDetailScreen> {
                         radius: 15,
                         backgroundColor: AppTheme.primary.withValues(alpha: .1),
                         child: Text(
-                          review.userName![0].toUpperCase(),
+                          (review.userName ?? 'U')[0].toUpperCase(),
                           style: const TextStyle(color: AppTheme.primary),
                         ),
                       ),
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text(
-                          review.userName!,
+                          review.userName ?? 'Mak Tech user',
                           style: const TextStyle(fontWeight: FontWeight.w600),
                         ),
                       ),

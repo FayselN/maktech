@@ -5,6 +5,9 @@ import '../theme/app_theme.dart';
 import 'app_detail_screen.dart';
 import 'privacy_policy_screen.dart';
 
+import 'package:provider/provider.dart';
+import '../providers/notification_provider.dart';
+
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
 
@@ -39,7 +42,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   Future<void> _markRead(String id) async {
     try {
-      await ApiService().put('/notifications/$id/read');
+      await context.read<NotificationProvider>().markAsRead(id);
       _load();
     } catch (_) {}
   }
@@ -53,7 +56,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           if (_notifications.any((n) => !n.isRead))
             TextButton(
               onPressed: () async {
-                await ApiService().put('/notifications/read-all');
+                await context.read<NotificationProvider>().markAllAsRead();
                 _load();
               },
               child: const Text(
@@ -86,7 +89,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   ),
                 );
                 if (confirmed == true) {
-                  await ApiService().delete('/notifications');
+                  await context.read<NotificationProvider>().clearAll();
                   if (mounted) _load();
                 }
               },

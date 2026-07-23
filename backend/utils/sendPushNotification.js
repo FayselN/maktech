@@ -31,6 +31,18 @@ const sendPushNotification = async ({ title, body, data }) => {
 
     const response = await admin.messaging().sendEachForMulticast(message);
 
+    console.log("========== FCM RESULT ==========");
+    console.log("Success:", response.successCount);
+    console.log("Failed :", response.failureCount);
+
+    response.responses.forEach((resp, index) => {
+      if (!resp.success) {
+        console.log(`Token ${index} failed:`, resp.error);
+      }
+    });
+
+    console.log("================================");
+
     const invalidTokens = [];
     response.responses.forEach((resp, idx) => {
       if (!resp.success) {

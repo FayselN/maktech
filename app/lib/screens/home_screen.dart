@@ -16,6 +16,10 @@ import 'recently_viewed_screen.dart';
 import 'notifications_screen.dart';
 import '../widgets/app_card.dart';
 import '../widgets/category_chip.dart';
+import '../widgets/home_skeleton.dart';
+
+import '../providers/notification_provider.dart';
+import '../services/notification_service.dart';
 
 class HomeScreen extends StatefulWidget {
   final bool isTab;
@@ -37,6 +41,15 @@ class _HomeScreenState extends State<HomeScreen> {
       context.read<AppProvider>().loadRecentlyViewed();
       _loadCategories();
       context.read<FavoriteProvider>().loadFavorites();
+      context.read<NotificationProvider>().fetchUnreadCount();
+
+      try {
+        NotificationService().onForegroundMessageReceived = () {
+          if (mounted) {
+            context.read<NotificationProvider>().fetchUnreadCount();
+          }
+        };
+      } catch (_) {}
     });
   }
 
@@ -101,6 +114,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final appProv = context.watch<AppProvider>();
     final favProv = context.watch<FavoriteProvider>();
+    final notifProv = context.watch<NotificationProvider>();
 
     return Scaffold(
       appBar: AppBar(
@@ -114,11 +128,36 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           IconButton(
-            icon: const Icon(Icons.notifications_outlined),
+            icon: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                const Icon(Icons.notifications_outlined),
+                if (notifProv.hasUnread)
+                  Positioned(
+                    right: -2,
+                    top: -2,
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: const BoxDecoration(
+                        color: Colors.red,
+                        shape: BoxShape.circle,
+                      ),
+                      constraints: const BoxConstraints(
+                        minWidth: 10,
+                        minHeight: 10,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
             onPressed: () => Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const NotificationsScreen()),
-            ),
+            ).then((_) {
+              if (mounted) {
+                context.read<NotificationProvider>().fetchUnreadCount();
+              }
+            }),
           ),
         ],
       ),
@@ -128,7 +167,7 @@ class _HomeScreenState extends State<HomeScreen> {
           await _loadCategories(forceRefresh: true);
         },
         child: appProv.loading && appProv.trending.isEmpty 
-            ? const Center(child: CircularProgressIndicator()) 
+            ? const HomeSkeleton() 
             : appProv.apiError != null 
                 ? _buildErrorState(appProv.apiError!, () {
                     context.read<AppProvider>().loadHomeData(forceRefresh: true);

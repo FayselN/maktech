@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../services/notification_service.dart';
 import 'main_screen.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -17,7 +18,9 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _init() async {
-    await Future.delayed(const Duration(milliseconds: 500));
+    await NotificationService().init();
+
+    await Future.delayed(const Duration(milliseconds: 1500));
     if (!mounted) return;
     Navigator.pushReplacement(
       context,

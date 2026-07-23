@@ -116,6 +116,10 @@ class AppProvider extends ChangeNotifier {
 
   Future<void> loadAppDetail(String id) async {
     _loading = true;
+    if (_selectedApp?.id != id) {
+      _selectedApp = null;
+    }
+    notifyListeners();
     final cacheKey = 'app_detail_$id';
 
     // 1. Show cached detail instantly
@@ -163,7 +167,10 @@ class AppProvider extends ChangeNotifier {
       _searchResults = (res['apps'] as List)
           .map((a) => AppModel.fromJson(a))
           .toList();
-    } catch (_) {}
+      _apiError = null;
+    } catch (e) {
+      _apiError = ApiException(ApiErrorType.unknown, 'Search failed');
+    }
     _loading = false;
     notifyListeners();
   }
@@ -211,7 +218,10 @@ class AppProvider extends ChangeNotifier {
         fetchFunction: () => _api.get('/apps/recently-viewed'),
         fromJson: (json) => (json as List).map((a) => AppModel.fromJson(a)).toList(),
       );
-    } catch (_) {}
+      _apiError = null;
+    } catch (e) {
+      _apiError = ApiException(ApiErrorType.unknown, 'Failed to load recently viewed');
+    }
     _loading = false;
     notifyListeners();
   }

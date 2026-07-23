@@ -9,6 +9,8 @@ import 'package:maktech/services/cache_service.dart';
 import 'package:maktech/screens/main_screen.dart';
 import 'dart:io';
 
+import 'package:maktech/providers/notification_provider.dart';
+
 Widget createApp() {
   return MaterialApp(
     home: MultiProvider(
@@ -16,6 +18,7 @@ Widget createApp() {
         ChangeNotifierProvider(create: (_) => AppProvider()),
         ChangeNotifierProvider(create: (_) => FavoriteProvider()),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        ChangeNotifierProvider(create: (_) => NotificationProvider()),
       ],
       child: const MainScreen(),
     ),

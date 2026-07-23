@@ -6,10 +6,10 @@ import 'package:provider/provider.dart';
 import 'providers/app_provider.dart';
 import 'providers/favorite_provider.dart';
 import 'providers/theme_provider.dart';
+import 'providers/notification_provider.dart';
 import 'services/api_service.dart';
-import 'services/notification_service.dart';
 import 'services/cache_service.dart';
-import 'screens/main_screen.dart';
+import 'screens/splash_screen.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -19,15 +19,14 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-  
+
+  await Future.wait([
+    Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform),
+    CacheService().init(),
+    ApiService().init(),
+  ]);
+
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-  
-  await CacheService().init();
-  await ApiService().init();
-  await NotificationService().init();
 
   runApp(
     MultiProvider(
@@ -35,6 +34,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => AppProvider()),
         ChangeNotifierProvider(create: (_) => FavoriteProvider()),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        ChangeNotifierProvider(create: (_) => NotificationProvider()),
       ],
       child: const MakTechApp(),
     ),
@@ -53,7 +53,7 @@ class MakTechApp extends StatelessWidget {
       theme: themeProv.lightTheme,
       darkTheme: themeProv.darkTheme,
       themeMode: themeProv.themeMode,
-      home: const MainScreen(),
+      home: const SplashScreen(),
     );
   }
 }

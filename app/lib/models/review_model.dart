@@ -26,7 +26,7 @@ class ReviewModel {
       // than to an account. Keep the UI useful for both API shapes.
       userName: user?['name'] as String? ?? 'Mak Tech user',
       userImage: user?['profileImage'] as String?,
-      rating: json['rating'] as int,
+      rating: (json['rating'] as num).toInt(),
       comment: json['comment'] as String? ?? '',
       createdAt: json['createdAt'] as String? ?? '',
     );

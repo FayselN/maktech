@@ -13,12 +13,17 @@ class NotificationService {
 
   NotificationService._internal();
 
-  final FirebaseMessaging _fcm = FirebaseMessaging.instance;
-  final FlutterLocalNotificationsPlugin _localNotifications = FlutterLocalNotificationsPlugin();
+  FirebaseMessaging? _fcmInstance;
+  FirebaseMessaging get _fcm => _fcmInstance ??= FirebaseMessaging.instance;
+  final FlutterLocalNotificationsPlugin _localNotifications =
+      FlutterLocalNotificationsPlugin();
+  VoidCallback? onForegroundMessageReceived;
 
   Future<void> init() async {
     try {
-      const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
+      const androidSettings = AndroidInitializationSettings(
+        '@mipmap/ic_launcher',
+      );
       const iosSettings = DarwinInitializationSettings(
         requestAlertPermission: false,
         requestBadgePermission: false,
@@ -37,7 +42,9 @@ class NotificationService {
         importance: Importance.high,
       );
       await _localNotifications
-          .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+          .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin
+          >()
           ?.createNotificationChannel(androidChannel);
 
       NotificationSettings settings = await _fcm.requestPermission(
@@ -58,15 +65,24 @@ class NotificationService {
       }
 
       String? token = await _fcm.getToken();
+
+      if (kDebugMode) {
+        print("========== FCM TOKEN ==========");
+        print(token);
+        print("================================");
+      }
+
       if (token != null) {
         await _registerTokenWithBackend(token);
       }
 
-      _fcm.onTokenRefresh.listen((newToken) {
-        _registerTokenWithBackend(newToken);
-      }).onError((err) {
-        if (kDebugMode) print('Token refresh failed: $err');
-      });
+      _fcm.onTokenRefresh
+          .listen((newToken) {
+            _registerTokenWithBackend(newToken);
+          })
+          .onError((err) {
+            if (kDebugMode) print('Token refresh failed: $err');
+          });
 
       FirebaseMessaging.onMessage.listen((RemoteMessage message) {
         final notification = message.notification;
@@ -89,6 +105,7 @@ class NotificationService {
             payload: message.data.isNotEmpty ? message.data.toString() : null,
           );
         }
+        onForegroundMessageReceived?.call();
       });
     } catch (e) {
       if (kDebugMode) {
@@ -99,14 +116,13 @@ class NotificationService {
 
   Future<void> _registerTokenWithBackend(String token) async {
     try {
-      String platformStr = kIsWeb ? 'web' : (Platform.isAndroid ? 'android' : 'ios');
+      String platformStr = kIsWeb
+          ? 'web'
+          : (Platform.isAndroid ? 'android' : 'ios');
 
       await ApiService().post(
         '/devices',
-        body: {
-          'fcmToken': token,
-          'platform': platformStr,
-        },
+        body: {'fcmToken': token, 'platform': platformStr},
       );
       if (kDebugMode) {
         print('Successfully registered FCM token with backend: $token');
