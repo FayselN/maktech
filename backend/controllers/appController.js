@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const App = require('../models/App');
 const RecentlyViewed = require('../models/RecentlyViewed');
 const Favorite = require('../models/Favorite');
