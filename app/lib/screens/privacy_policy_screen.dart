@@ -64,7 +64,8 @@ class PrivacyPolicyScreen extends StatelessWidget {
             ),
             _Section(
               title: 'Contact',
-              body: 'If you have questions about this policy, contact us at support@maktech.app',
+              body:
+                  'If you have questions about this policy, contact us at mubareknessro@gmail.com',
             ),
             SizedBox(height: 32),
           ],

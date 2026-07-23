@@ -55,22 +55,12 @@ class NotificationService {
       );
 
       if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-        if (kDebugMode) {
-          print('User granted notification permission');
-        }
+        // Permission granted
       } else {
-        if (kDebugMode) {
-          print('User declined or has not accepted notification permission');
-        }
+        // Permission declined
       }
 
       String? token = await _fcm.getToken();
-
-      if (kDebugMode) {
-        print("========== FCM TOKEN ==========");
-        print(token);
-        print("================================");
-      }
 
       if (token != null) {
         await _registerTokenWithBackend(token);
@@ -80,9 +70,7 @@ class NotificationService {
           .listen((newToken) {
             _registerTokenWithBackend(newToken);
           })
-          .onError((err) {
-            if (kDebugMode) print('Token refresh failed: $err');
-          });
+          .onError((err) {});
 
       FirebaseMessaging.onMessage.listen((RemoteMessage message) {
         final notification = message.notification;
@@ -108,9 +96,7 @@ class NotificationService {
         onForegroundMessageReceived?.call();
       });
     } catch (e) {
-      if (kDebugMode) {
-        print('Error initializing NotificationService: $e');
-      }
+      // Error initializing NotificationService
     }
   }
 
@@ -124,13 +110,8 @@ class NotificationService {
         '/devices',
         body: {'fcmToken': token, 'platform': platformStr},
       );
-      if (kDebugMode) {
-        print('Successfully registered FCM token with backend: $token');
-      }
     } catch (e) {
-      if (kDebugMode) {
-        print('Failed to register FCM token with backend: $e');
-      }
+      // Failed to register token
     }
   }
 }
