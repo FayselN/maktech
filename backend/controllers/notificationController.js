@@ -15,11 +15,13 @@ const list = async (req, res, next) => {
     ]);
 
     res.json({
-      notifications: notifications.map((n) => ({
-        ...n.notificationId.toObject(),
-        isRead: n.isRead,
-        deviceNotificationId: n._id,
-      })),
+      notifications: notifications
+        .filter((n) => n.notificationId != null)
+        .map((n) => ({
+          ...n.notificationId.toObject(),
+          isRead: n.isRead,
+          deviceNotificationId: n._id,
+        })),
       pagination: {
         page: parseInt(page),
         limit: parseInt(limit),
