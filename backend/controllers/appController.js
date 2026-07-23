@@ -124,7 +124,13 @@ const getDailyFeatured = async (req, res, next) => {
     const today = new Date();
     today.setUTCHours(0, 0, 0, 0);
 
-    const featured = await DailyFeatured.findOne({ featuredDate: today }).populate('appId');
+    let featured = await DailyFeatured.findOne({ featuredDate: today }).populate('appId');
+    
+    // Fallback to the most recent featured app if none set specifically for today UTC
+    if (!featured || !featured.appId) {
+      featured = await DailyFeatured.findOne({}).sort({ featuredDate: -1 }).populate('appId');
+    }
+
     if (!featured || !featured.appId) {
       return res.json(null);
     }

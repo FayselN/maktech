@@ -64,7 +64,7 @@ const apps = [
     pros: ['Extremely flexible', 'Clean, minimal UI', 'Great templates community'],
     cons: ['Steep learning curve for beginners', 'Can feel slow with very large pages'],
     status: 'published',
-    isNew: false,
+    isNewApp: false,
     viewCount: 1240,
     favoriteCount: 88,
   },
@@ -87,7 +87,7 @@ const apps = [
     pros: ['Extremely versatile', 'Fast responses', 'Regularly updated with new features'],
     cons: ['Free tier has usage limits', 'Can occasionally give inaccurate info'],
     status: 'published',
-    isNew: false,
+    isNewApp: false,
     viewCount: 3450,
     favoriteCount: 512,
   },
@@ -110,7 +110,7 @@ const apps = [
     pros: ['Free features rival paid editors', 'Huge template library', 'Easy for beginners'],
     cons: ['Watermark on some export options', 'Occasional ads'],
     status: 'published',
-    isNew: false,
+    isNewApp: false,
     viewCount: 2890,
     favoriteCount: 340,
   },
@@ -133,7 +133,7 @@ const apps = [
     pros: ['Fun and habit-forming', 'Completely usable for free', 'Good for absolute beginners'],
     cons: ['Not deep enough for fluency alone', 'Ads on free tier'],
     status: 'published',
-    isNew: false,
+    isNewApp: false,
     viewCount: 1980,
     favoriteCount: 210,
   },
@@ -156,7 +156,7 @@ const apps = [
     pros: ['Very accurate scanning', 'Fast OCR', 'Handles batch scans well'],
     cons: ['Subscription needed for full features', 'Frequent upgrade prompts'],
     status: 'published',
-    isNew: false,
+    isNewApp: false,
     viewCount: 870,
     favoriteCount: 65,
   },
@@ -179,7 +179,7 @@ const apps = [
     pros: ['Fully automated tracking', 'Free with no paywalled core features', 'Good visual breakdowns'],
     cons: ['Bank sync occasionally glitches', 'Ads for financial products'],
     status: 'published',
-    isNew: false,
+    isNewApp: false,
     viewCount: 640,
     favoriteCount: 41,
   },
@@ -202,7 +202,7 @@ const apps = [
     pros: ['Free tier has no data cap', 'Strong privacy reputation', 'Easy one-tap connect'],
     cons: ['Free servers can be slower', 'Fewer server locations on free plan'],
     status: 'published',
-    isNew: true,
+    isNewApp: true,
     viewCount: 410,
     favoriteCount: 33,
   },
@@ -225,7 +225,7 @@ const apps = [
     pros: ['Simple, addictive gameplay', 'Frequent content updates', 'Works offline'],
     cons: ['Frequent ads', 'Progression can push in-app purchases'],
     status: 'published',
-    isNew: false,
+    isNewApp: false,
     viewCount: 1560,
     favoriteCount: 190,
   },
@@ -248,7 +248,7 @@ const apps = [
     pros: ['Impressive restoration quality', 'Fast processing', 'Fun AI avatar features'],
     cons: ['Subscription required for full use', 'Can over-smooth some faces'],
     status: 'published',
-    isNew: true,
+    isNewApp: true,
     viewCount: 980,
     favoriteCount: 120,
   },
@@ -271,7 +271,7 @@ const apps = [
     pros: ['Clean and fast interface', 'Reliable notifications', 'Great free tier'],
     cons: ['Advanced features need Pro plan', 'No built-in calendar view on free tier'],
     status: 'published',
-    isNew: false,
+    isNewApp: false,
     viewCount: 730,
     favoriteCount: 95,
   },
@@ -286,11 +286,17 @@ async function seed() {
     console.log('Connected to MongoDB:', MONGODB_URI);
 
     // The project previously identified reviews by userId. MongoDB preserves
-    // indexes after deleteMany(), so remove that legacy index before seeding
-    // reviews identified by deviceId.
+    // indexes after deleteMany(), so remove legacy indexes before seeding.
     try {
       await Review.collection.dropIndex('appId_1_userId_1');
       console.log('Removed legacy reviews index: appId_1_userId_1');
+    } catch (error) {
+      if (error.codeName !== 'IndexNotFound') throw error;
+    }
+
+    try {
+      await Favorite.collection.dropIndex('userId_1_appId_1');
+      console.log('Removed legacy favorites index: userId_1_appId_1');
     } catch (error) {
       if (error.codeName !== 'IndexNotFound') throw error;
     }

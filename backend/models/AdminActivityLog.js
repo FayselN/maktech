@@ -7,7 +7,7 @@ const adminActivityLogSchema = new mongoose.Schema({
     enum: [
       'app_created', 'app_updated', 'app_deleted', 'category_created',
       'category_updated', 'category_deleted', 'app_published',
-      'featured_set', 'notification_sent',
+      'featured_set', 'notification_sent', 'notification_deleted',
     ],
     required: true,
   },
