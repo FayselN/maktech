@@ -12,7 +12,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-app.get('/api/health', (req, res) => {
+app.get('/api/v1/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
@@ -111,9 +111,9 @@ app.get('/privacy-policy', (req, res) => {
 </html>`);
 });
 
-app.use('/api', routes);
-app.use('/api/admin/auth', adminAuthRoutes);
-app.use('/api/admin', authMiddleware, adminMiddleware, adminRoutes);
+app.use('/api/v1', routes);
+app.use('/api/v1/admin/auth', adminAuthRoutes);
+app.use('/api/v1/admin', authMiddleware, adminMiddleware, adminRoutes);
 
 app.use(errorMiddleware);
 
