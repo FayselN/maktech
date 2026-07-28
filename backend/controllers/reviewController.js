@@ -1,9 +1,10 @@
 const Review = require('../models/Review');
+const ReviewReport = require('../models/ReviewReport');
 const App = require('../models/App');
 
 const recalculateRatingStats = async (appId) => {
   const stats = await Review.aggregate([
-    { $match: { appId: require('mongoose').Types.ObjectId.createFromHexString(appId.toString()) } },
+    { $match: { appId: require('mongoose').Types.ObjectId.createFromHexString(appId.toString()), status: { $ne: 'removed' } } },
     { $group: { _id: null, average: { $avg: '$rating' }, count: { $sum: 1 } } },
   ]);
 
@@ -20,11 +21,11 @@ const listByApp = async (req, res, next) => {
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
     const [reviews, total] = await Promise.all([
-      Review.find({ appId: req.params.appId })
+      Review.find({ appId: req.params.appId, status: { $ne: 'removed' } })
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(parseInt(limit)),
-      Review.countDocuments({ appId: req.params.appId }),
+      Review.countDocuments({ appId: req.params.appId, status: { $ne: 'removed' } }),
     ]);
 
     res.json({
@@ -111,4 +112,31 @@ const remove = async (req, res, next) => {
   }
 };
 
-module.exports = { listByApp, create, update, remove };
+const reportReview = async (req, res, next) => {
+  try {
+    const { reviewId } = req.params;
+    const { reason } = req.body;
+
+    await ReviewReport.create({ reviewId, deviceId: req.deviceId, reason });
+
+    const review = await Review.findByIdAndUpdate(
+      reviewId,
+      { $inc: { reportCount: 1 } },
+      { new: true }
+    );
+
+    if (review.reportCount >= 3 && review.status === 'published') {
+      review.status = 'flagged';
+      await review.save();
+    }
+
+    res.json({ success: true });
+  } catch (err) {
+    if (err.code === 11000) {
+      return res.status(400).json({ error: 'You already reported this review' });
+    }
+    next(err);
+  }
+};
+
+module.exports = { listByApp, create, update, remove, reportReview };

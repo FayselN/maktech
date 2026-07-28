@@ -102,4 +102,31 @@ class CacheService {
   void clearCache() {
     _cacheBox.clear();
   }
+
+  // Tracking reported reviews to hide report button
+  void markReviewAsReported(String reviewId) {
+    List<String> reported = getReportedReviews();
+    if (!reported.contains(reviewId)) {
+      reported.add(reviewId);
+      _cacheBox.put('reported_reviews', jsonEncode(reported));
+    }
+  }
+
+  bool hasReportedReview(String reviewId) {
+    List<String> reported = getReportedReviews();
+    return reported.contains(reviewId);
+  }
+
+  List<String> getReportedReviews() {
+    final cachedStr = _cacheBox.get('reported_reviews');
+    if (cachedStr != null) {
+      try {
+        final List<dynamic> decoded = jsonDecode(cachedStr);
+        return decoded.map((e) => e.toString()).toList();
+      } catch (_) {
+        return [];
+      }
+    }
+    return [];
+  }
 }

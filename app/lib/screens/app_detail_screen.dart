@@ -7,6 +7,7 @@ import '../providers/app_provider.dart';
 import '../providers/favorite_provider.dart';
 import '../models/review_model.dart';
 import '../services/api_service.dart';
+import '../services/cache_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/star_rating.dart';
 
@@ -123,6 +124,111 @@ class _AppDetailScreenState extends State<AppDetailScreen> {
         text: 'Check out $appName on Mak Tech!\n$url',
         subject: 'Check out $appName on Mak Tech',
       ),
+    );
+  }
+
+  Future<void> _reportReview(String reviewId, String reason) async {
+    try {
+      await ApiService().post(
+        '/apps/${widget.appId}/reviews/$reviewId/report',
+        body: {'reason': reason},
+      );
+      CacheService().markReviewAsReported(reviewId);
+      if (mounted) {
+        setState(() {});
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Thanks, we\'ll review this.'),
+            backgroundColor: AppTheme.card,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+              side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+            ),
+          ),
+        );
+      }
+    } on ApiException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.message),
+            backgroundColor: AppTheme.error.withValues(alpha: 0.9),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+        );
+      }
+    } catch (_) {
+      // fail silently — not critical path
+    }
+  }
+
+  void _showReportSheet(String reviewId) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppTheme.card,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        final reasons = [
+          {'key': 'spam', 'label': 'Spam', 'icon': Icons.report_gmailerrorred},
+          {'key': 'offensive', 'label': 'Offensive', 'icon': Icons.warning_amber_rounded},
+          {'key': 'irrelevant', 'label': 'Irrelevant', 'icon': Icons.not_interested},
+          {'key': 'other', 'label': 'Other', 'icon': Icons.more_horiz},
+        ];
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: AppTheme.textSecondary.withValues(alpha: 0.3),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Report this review',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.text,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                const Text(
+                  'Select a reason for reporting:',
+                  style: TextStyle(fontSize: 13, color: AppTheme.textSecondary),
+                ),
+                const SizedBox(height: 16),
+                ...reasons.map((r) => ListTile(
+                  leading: Icon(r['icon'] as IconData, color: AppTheme.error, size: 22),
+                  title: Text(
+                    r['label'] as String,
+                    style: const TextStyle(color: AppTheme.text, fontWeight: FontWeight.w500),
+                  ),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    _reportReview(reviewId, r['key'] as String);
+                  },
+                )),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -628,6 +734,18 @@ class _AppDetailScreenState extends State<AppDetailScreen> {
                         count: 0,
                         size: 14,
                       ),
+                      if (!CacheService().hasReportedReview(review.id))
+                        IconButton(
+                          icon: Icon(
+                            Icons.flag_outlined,
+                            size: 18,
+                            color: AppTheme.textSecondary.withValues(alpha: 0.6),
+                          ),
+                          tooltip: 'Report review',
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                          onPressed: () => _showReportSheet(review.id),
+                        ),
                     ],
                   ),
                   if (review.comment.isNotEmpty) ...[

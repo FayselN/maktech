@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
 import {
-  LayoutDashboard, Smartphone, FolderOpen, Star, Bell, Activity, LogOut, ShieldAlert,
+  LayoutDashboard, Smartphone, FolderOpen, Star, Bell, Activity, LogOut, ShieldAlert, Flag
 } from 'lucide-react';
 
 const navItems = [
@@ -13,6 +13,7 @@ const navItems = [
   { href: '/dashboard/categories', label: 'Categories', icon: FolderOpen },
   { href: '/dashboard/featured', label: 'Daily Featured', icon: Star },
   { href: '/dashboard/notifications', label: 'Notifications', icon: Bell },
+  { href: '/dashboard/reviews/flagged', label: 'Flagged Reviews', icon: Flag },
   { href: '/dashboard/activity', label: 'Activity Log', icon: Activity },
   { href: '/dashboard/settings', label: 'Settings', icon: ShieldAlert },
 ];
