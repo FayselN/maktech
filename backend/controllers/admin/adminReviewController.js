@@ -11,10 +11,10 @@ const getFlagged = async (req, res, next) => {
     // For each review, let's also fetch the reasons (optional but helpful)
     const reviewsWithReasons = await Promise.all(
       reviews.map(async (review) => {
-        const reports = await ReviewReport.find({ reviewId: review._id }).select('reason -_id');
+        const reports = await ReviewReport.find({ reviewId: review._id }).select('reason otherReason -_id');
         return {
           ...review.toObject(),
-          reports: reports.map(r => r.reason)
+          reports: reports.map(r => r.reason === 'other' && r.otherReason ? `Other: ${r.otherReason}` : r.reason)
         };
       })
     );

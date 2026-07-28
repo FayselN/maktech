@@ -115,9 +115,9 @@ const remove = async (req, res, next) => {
 const reportReview = async (req, res, next) => {
   try {
     const { reviewId } = req.params;
-    const { reason } = req.body;
+    const { reason, otherReason } = req.body;
 
-    await ReviewReport.create({ reviewId, deviceId: req.deviceId, reason });
+    await ReviewReport.create({ reviewId, deviceId: req.deviceId, reason, otherReason });
 
     const review = await Review.findByIdAndUpdate(
       reviewId,

@@ -132,11 +132,14 @@ class _AppDetailScreenState extends State<AppDetailScreen> {
     );
   }
 
-  Future<void> _reportReview(String reviewId, String reason) async {
+  Future<void> _reportReview(String reviewId, String reason, {String? otherReason}) async {
     try {
+      final body = {'reason': reason};
+      if (otherReason != null) body['otherReason'] = otherReason;
+
       await ApiService().post(
         '/apps/${widget.appId}/reviews/$reviewId/report',
-        body: {'reason': reason},
+        body: body,
       );
       CacheService().markReviewAsReported(reviewId);
       if (mounted) {
@@ -269,7 +272,7 @@ class _AppDetailScreenState extends State<AppDetailScreen> {
               final reason = controller.text.trim();
               if (reason.isNotEmpty) {
                 Navigator.pop(ctx);
-                _reportReview(reviewId, 'Other: $reason');
+                _reportReview(reviewId, 'other', otherReason: reason);
               }
             },
             child: const Text('Submit'),
