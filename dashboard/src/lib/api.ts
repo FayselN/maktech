@@ -23,9 +23,12 @@ class ApiClient {
 
   private async request<T>(path: string, options: RequestInit = {}): Promise<T> {
     const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
       ...(options.headers as Record<string, string>),
     };
+
+    if (!(options.body instanceof FormData) && !headers['Content-Type']) {
+      headers['Content-Type'] = 'application/json';
+    }
 
     if (this.token) {
       headers['Authorization'] = `Bearer ${this.token}`;
@@ -70,6 +73,13 @@ class ApiClient {
 
   delete<T>(path: string) {
     return this.request<T>(path, { method: 'DELETE' });
+  }
+
+  upload<T>(path: string, formData: FormData) {
+    return this.request<T>(path, {
+      method: 'POST',
+      body: formData,
+    });
   }
 }
 

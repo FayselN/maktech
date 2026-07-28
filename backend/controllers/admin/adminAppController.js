@@ -161,4 +161,17 @@ const getById = async (req, res, next) => {
   }
 };
 
-module.exports = { create, update, remove, listAll, addScreenshots, deleteScreenshot, getById };
+const uploadImage = async (req, res, next) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: 'No image file provided' });
+    }
+    
+    const url = await uploadToR2(req.file.buffer, req.file.originalname, 'thumbnails');
+    res.json({ url });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { create, update, remove, listAll, addScreenshots, deleteScreenshot, getById, uploadImage };

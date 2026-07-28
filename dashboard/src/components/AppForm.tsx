@@ -60,6 +60,10 @@ export default function AppForm({ app, onSuccess }: Props) {
   const [allCategories, setAllCategories] = useState<Category[]>([]);
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
+  
+  // Icon upload state
+  const [uploadMode, setUploadMode] = useState(false);
+  const [uploadingIcon, setUploadingIcon] = useState(false);
 
   useEffect(() => {
     api.get<Category[]>('/categories')
@@ -128,6 +132,26 @@ export default function AppForm({ app, onSuccess }: Props) {
       setError(err instanceof Error ? err.message : 'Failed to save app');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingIcon(true);
+    setError('');
+
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+      
+      const res = await api.upload<{ url: string }>('/admin/apps/upload', formData);
+      setForm((prev) => ({ ...prev, iconUrl: res.url }));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to upload image');
+    } finally {
+      setUploadingIcon(false);
     }
   };
 
@@ -201,8 +225,37 @@ export default function AppForm({ app, onSuccess }: Props) {
             <input className={inputClass} value={form.playStoreUrl} onChange={(e) => setForm({ ...form, playStoreUrl: e.target.value })} required />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Icon URL *</label>
-            <input className={inputClass} value={form.iconUrl} onChange={(e) => setForm({ ...form, iconUrl: e.target.value })} required />
+            <label className="block text-sm font-medium text-gray-700 mb-2">Icon *</label>
+            <div className="space-y-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+              <div className="flex gap-4">
+                <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+                  <input type="radio" name="iconMode" checked={!uploadMode} onChange={() => setUploadMode(false)} className="text-indigo-600 focus:ring-indigo-500" />
+                  Paste URL
+                </label>
+                <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+                  <input type="radio" name="iconMode" checked={uploadMode} onChange={() => setUploadMode(true)} className="text-indigo-600 focus:ring-indigo-500" />
+                  Upload Image
+                </label>
+              </div>
+              
+              {!uploadMode ? (
+                <input className={inputClass} value={form.iconUrl} onChange={(e) => setForm({ ...form, iconUrl: e.target.value })} placeholder="https://..." required />
+              ) : (
+                <div className="flex flex-col gap-3">
+                  <input type="file" accept="image/*" onChange={handleImageUpload} className="text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer" />
+                  {uploadingIcon && <p className="text-xs text-indigo-600 font-medium">Uploading...</p>}
+                  {form.iconUrl && (
+                    <div className="flex items-center gap-3 mt-2">
+                      <img src={form.iconUrl} alt="Preview" className="w-16 h-16 rounded-xl object-cover border border-gray-200 shadow-sm" />
+                      <span className="text-xs text-green-600 font-medium flex items-center gap-1">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
+                        Uploaded successfully
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
