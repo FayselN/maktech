@@ -6,6 +6,7 @@ class ReviewModel {
   final int rating;
   final String comment;
   final String createdAt;
+  final String? deviceId;
 
   ReviewModel({
     required this.id,
@@ -15,6 +16,7 @@ class ReviewModel {
     required this.rating,
     required this.comment,
     required this.createdAt,
+    this.deviceId,
   });
 
   factory ReviewModel.fromJson(Map<String, dynamic> json) {
@@ -29,6 +31,7 @@ class ReviewModel {
       rating: (json['rating'] as num).toInt(),
       comment: json['comment'] as String? ?? '',
       createdAt: json['createdAt'] as String? ?? '',
+      deviceId: json['deviceId'] as String?,
     );
   }
 }

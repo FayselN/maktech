@@ -9,6 +9,7 @@ import '../models/review_model.dart';
 import '../services/api_service.dart';
 import '../services/cache_service.dart';
 import '../theme/app_theme.dart';
+import '../utils/device_utils.dart';
 import '../widgets/star_rating.dart';
 
 class AppDetailScreen extends StatefulWidget {
@@ -26,6 +27,7 @@ class _AppDetailScreenState extends State<AppDetailScreen> {
   int _rating = 5;
   bool _reviewsLoading = true;
   bool _submittingReview = false;
+  String? _currentDeviceId;
 
   @override
   void initState() {
@@ -33,6 +35,9 @@ class _AppDetailScreenState extends State<AppDetailScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       context.read<AppProvider>().loadAppDetail(widget.appId);
+    });
+    DeviceUtils.getDeviceId().then((id) {
+      if (mounted) setState(() => _currentDeviceId = id);
     });
     _loadReviews();
   }
@@ -221,7 +226,11 @@ class _AppDetailScreenState extends State<AppDetailScreen> {
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   onTap: () {
                     Navigator.pop(ctx);
-                    _reportReview(reviewId, r['key'] as String);
+                    if (r['key'] == 'other') {
+                      _showOtherReasonDialog(reviewId);
+                    } else {
+                      _reportReview(reviewId, r['key'] as String);
+                    }
                   },
                 )),
               ],
@@ -229,6 +238,44 @@ class _AppDetailScreenState extends State<AppDetailScreen> {
           ),
         );
       },
+    );
+  }
+
+  void _showOtherReasonDialog(String reviewId) {
+    final controller = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppTheme.card,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('Other Reason', style: TextStyle(color: AppTheme.text)),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          decoration: const InputDecoration(
+            hintText: 'Please specify...',
+            hintStyle: TextStyle(color: AppTheme.textSecondary),
+          ),
+          style: const TextStyle(color: AppTheme.text),
+          maxLines: 3,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel', style: TextStyle(color: AppTheme.textSecondary)),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              final reason = controller.text.trim();
+              if (reason.isNotEmpty) {
+                Navigator.pop(ctx);
+                _reportReview(reviewId, 'Other: $reason');
+              }
+            },
+            child: const Text('Submit'),
+          ),
+        ],
+      ),
     );
   }
 
@@ -734,7 +781,7 @@ class _AppDetailScreenState extends State<AppDetailScreen> {
                         count: 0,
                         size: 14,
                       ),
-                      if (!CacheService().hasReportedReview(review.id))
+                      if (_currentDeviceId != null && review.deviceId != _currentDeviceId && !CacheService().hasReportedReview(review.id))
                         IconButton(
                           icon: Icon(
                             Icons.flag_outlined,
