@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'firebase_options.dart';
 import 'package:provider/provider.dart';
 import 'providers/app_provider.dart';
@@ -9,6 +10,7 @@ import 'providers/theme_provider.dart';
 import 'providers/notification_provider.dart';
 import 'services/api_service.dart';
 import 'services/cache_service.dart';
+import 'services/ad_service.dart';
 import 'screens/splash_screen.dart';
 
 @pragma('vm:entry-point')
@@ -24,9 +26,13 @@ void main() async {
     Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform),
     CacheService().init(),
     ApiService().init(),
+    MobileAds.instance.initialize(),
   ]);
 
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+
+  // UMP consent must finish before any ad is requested (Phase 3 flow).
+  await AdService.instance.requestConsent();
 
   runApp(
     MultiProvider(

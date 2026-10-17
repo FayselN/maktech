@@ -17,6 +17,7 @@ import 'notifications_screen.dart';
 import '../widgets/app_card.dart';
 import '../widgets/category_chip.dart';
 import '../widgets/home_skeleton.dart';
+import '../widgets/banner_ad_widget.dart';
 
 import '../providers/notification_provider.dart';
 import '../services/notification_service.dart';
@@ -161,82 +162,89 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      body: RefreshIndicator(
-        onRefresh: () async {
-          await context.read<AppProvider>().loadHomeData(forceRefresh: true);
-          await _loadCategories(forceRefresh: true);
-        },
-        child: appProv.loading && appProv.trending.isEmpty 
-            ? const HomeSkeleton() 
-            : appProv.apiError != null 
-                ? _buildErrorState(appProv.apiError!, () {
-                    context.read<AppProvider>().loadHomeData(forceRefresh: true);
-                    _loadCategories(forceRefresh: true);
-                  })
-                : SingleChildScrollView(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        if (appProv.isOfflineMode)
-                          Container(
-                            width: double.infinity,
-                            color: Colors.orange.shade100,
-                            padding: const EdgeInsets.symmetric(vertical: 8),
-                            child: const Center(
-                              child: Text(
-                                'You\'re offline — showing saved content', 
-                                style: TextStyle(fontSize: 12, color: Colors.orange)
-                              ),
-                            ),
-                          ),
-                        Padding(
-                          padding: const EdgeInsets.all(16),
+      body: Column(
+        children: [
+          Expanded(
+            child: RefreshIndicator(
+              onRefresh: () async {
+                await context.read<AppProvider>().loadHomeData(forceRefresh: true);
+                await _loadCategories(forceRefresh: true);
+              },
+              child: appProv.loading && appProv.trending.isEmpty 
+                  ? const HomeSkeleton() 
+                  : appProv.apiError != null 
+                      ? _buildErrorState(appProv.apiError!, () {
+                          context.read<AppProvider>().loadHomeData(forceRefresh: true);
+                          _loadCategories(forceRefresh: true);
+                        })
+                      : SingleChildScrollView(
+                          physics: const AlwaysScrollableScrollPhysics(),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              if (appProv.dailyFeatured != null)
-                                _buildDailyFeatured(appProv.dailyFeatured!),
-                              const SizedBox(height: 20),
-                              _buildSectionHeader('Categories', () {}),
-                              const SizedBox(height: 12),
-                              _buildCategories(),
-                              const SizedBox(height: 24),
-                              _buildSectionHeader('Trending', () {}),
-                              const SizedBox(height: 12),
-                              _buildAppList(appProv.trending, favProv),
-                              const SizedBox(height: 24),
-                              _buildSectionHeader('New Apps', () {}),
-                              const SizedBox(height: 12),
-                              _buildAppList(appProv.newApps, favProv),
-                              const SizedBox(height: 24),
-                              _buildSectionHeader(
-                                'Recently Viewed',
-                                () => Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => const RecentlyViewedScreen(),
+                              if (appProv.isOfflineMode)
+                                Container(
+                                  width: double.infinity,
+                                  color: Colors.orange.shade100,
+                                  padding: const EdgeInsets.symmetric(vertical: 8),
+                                  child: const Center(
+                                    child: Text(
+                                      'You\'re offline — showing saved content', 
+                                      style: TextStyle(fontSize: 12, color: Colors.orange)
+                                    ),
                                   ),
                                 ),
-                              ),
-                              const SizedBox(height: 12),
-                              _buildAppList(appProv.recentlyViewed.take(5).toList(), favProv),
-                              const SizedBox(height: 24),
-                              _buildSectionHeader(
-                                'Favorites',
-                                () => Navigator.push(
-                                  context,
-                                  MaterialPageRoute(builder: (_) => const FavoritesScreen()),
+                              Padding(
+                                padding: const EdgeInsets.all(16),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    if (appProv.dailyFeatured != null)
+                                      _buildDailyFeatured(appProv.dailyFeatured!),
+                                    const SizedBox(height: 20),
+                                    _buildSectionHeader('Categories', () {}),
+                                    const SizedBox(height: 12),
+                                    _buildCategories(),
+                                    const SizedBox(height: 24),
+                                    _buildSectionHeader('Trending', () {}),
+                                    const SizedBox(height: 12),
+                                    _buildAppList(appProv.trending, favProv),
+                                    const SizedBox(height: 24),
+                                    _buildSectionHeader('New Apps', () {}),
+                                    const SizedBox(height: 12),
+                                    _buildAppList(appProv.newApps, favProv),
+                                    const SizedBox(height: 24),
+                                    _buildSectionHeader(
+                                      'Recently Viewed',
+                                      () => Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) => const RecentlyViewedScreen(),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 12),
+                                    _buildAppList(appProv.recentlyViewed.take(5).toList(), favProv),
+                                    const SizedBox(height: 24),
+                                    _buildSectionHeader(
+                                      'Favorites',
+                                      () => Navigator.push(
+                                        context,
+                                        MaterialPageRoute(builder: (_) => const FavoritesScreen()),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 12),
+                                    _buildAppList(favProv.favorites.take(5).toList(), favProv),
+                                  ],
                                 ),
                               ),
-                              const SizedBox(height: 12),
-                              _buildAppList(favProv.favorites.take(5).toList(), favProv),
                             ],
                           ),
                         ),
-                      ],
-                    ),
-                  ),
+            ),
+          ),
+          const BannerAdWidget(),
+        ],
       ),
     );
   }

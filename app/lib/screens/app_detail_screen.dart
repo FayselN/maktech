@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import '../widgets/native_ad_widget.dart';
+
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -544,7 +546,9 @@ class _AppDetailScreenState extends State<AppDetailScreen> {
                       Icons.thumb_down,
                       AppTheme.error,
                     ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 24),
+                  const NativeAdWidget(),
+                  const SizedBox(height: 16),
                   Row(
                     children: [
                       Expanded(
@@ -599,7 +603,6 @@ class _AppDetailScreenState extends State<AppDetailScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 24),
                   const Text(
                     'Rating & Reviews',
                     style: TextStyle(
