@@ -6,3 +6,7 @@
 .env.keys
 .env.local
 .env.*.local
+
+# firebase creds for edge functions (never commit)
+.secrets/
+.env
