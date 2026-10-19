@@ -35,82 +35,95 @@ class AppCard extends StatelessWidget {
             child: Padding(
               padding: const EdgeInsets.all(12),
               child: Row(
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: Container(
-                  width: 64,
-                  height: 64,
-                  decoration: BoxDecoration(
-                    color: AppTheme.primary.withValues(alpha: 0.1),
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Container(
+                      width: 64,
+                      height: 64,
+                      decoration: BoxDecoration(
+                        color: AppTheme.primary.withValues(alpha: 0.1),
+                      ),
+                      child: CachedNetworkImage(
+                        imageUrl: app.iconUrl,
+                        fit: BoxFit.cover,
+                        placeholder: (context, url) => const Center(
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primary),
+                          ),
+                        ),
+                        errorWidget: (context, url, error) => const Icon(
+                          Icons.explore,
+                          color: AppTheme.primary,
+                          size: 32,
+                        ),
+                      ),
+                    ),
                   ),
-                  child: CachedNetworkImage(
-                    imageUrl: app.iconUrl,
-                    fit: BoxFit.cover,
-                    placeholder: (context, url) => const Center(
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primary),
-                      ),
-                    ),
-                    errorWidget: (context, url, error) => const Icon(
-                      Icons.explore,
-                      color: AppTheme.primary,
-                      size: 32,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      app.curiosityTitle,
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 15,
-                        color: context.appText,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      app.shortDescription,
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: context.appTextSecondary,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 6),
-                    Row(
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        ...app.categories.take(2).map((cat) => Padding(
-                          padding: const EdgeInsets.only(right: 4),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: AppTheme.primary.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(4),
+                        Text(
+                          app.curiosityTitle,
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 15,
+                            color: context.appText,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          app.shortDescription,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: context.appTextSecondary,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 6),
+                        Row(
+                          children: [
+                            ...app.categories.take(2).map((cat) => Padding(
+                              padding: const EdgeInsets.only(right: 4),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: AppTheme.primary.withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Text(
+                                  cat,
+                                  style: const TextStyle(
+                                    fontSize: 10,
+                                    color: AppTheme.primary,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            )),
+                            const Spacer(),
+                            Icon(
+                              Icons.visibility_outlined,
+                              size: 14,
+                              color: context.appTextSecondary,
                             ),
-                            child: Text(
-                              cat,
-                              style: const TextStyle(
-                                fontSize: 10,
-                                color: AppTheme.primary,
+                            const SizedBox(width: 2),
+                            Text(
+                              _formatViews(app.viewCount),
+                              style: TextStyle(
+                                fontSize: 12,
                                 fontWeight: FontWeight.w500,
+                                color: context.appTextSecondary,
                               ),
                             ),
-                          ),
-                        )),
-                        const Spacer(),
-                        if (app.playStoreRating > 0)
-                          Row(
-                            children: [
+                            if (app.playStoreRating > 0) ...[
+                              const SizedBox(width: 10),
                               const Icon(Icons.star, size: 14, color: AppTheme.accent),
                               const SizedBox(width: 2),
                               Text(
@@ -122,27 +135,32 @@ class AppCard extends StatelessWidget {
                                 ),
                               ),
                             ],
-                          ),
+                          ],
+                        ),
                       ],
                     ),
-                  ],
-                ),
-              ),
-              if (onFavorite != null)
-                IconButton(
-                  onPressed: onFavorite,
-                  icon: Icon(
-                    isFavorited ? Icons.favorite : Icons.favorite_border,
-                    color: isFavorited ? AppTheme.error : context.appTextSecondary,
-                    size: 20,
                   ),
-                ),
-            ],
+                  if (onFavorite != null)
+                    IconButton(
+                      onPressed: onFavorite,
+                      icon: Icon(
+                        isFavorited ? Icons.favorite : Icons.favorite_border,
+                        color: isFavorited ? AppTheme.error : context.appTextSecondary,
+                        size: 20,
+                      ),
+                    ),
+                ],
+              ),
+            ),
           ),
-        ),
-      ),
         ),
       ),
     );
   }
+}
+
+String _formatViews(int views) {
+  if (views >= 1000000) return '${(views / 1000000).toStringAsFixed(1)}m';
+  if (views >= 1000) return '${(views / 1000).toStringAsFixed(1)}k';
+  return '$views';
 }

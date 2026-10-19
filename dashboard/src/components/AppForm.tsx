@@ -17,6 +17,7 @@ interface ListItem {
 
 interface FormData {
   name: string;
+  searchCode: string;
   curiosityTitle: string;
   shortDescription: string;
   longDescription: string;
@@ -37,6 +38,7 @@ const DEFAULT_DEVELOPER = 'Mak Tech';
 
 const emptyForm: FormData = {
   name: '',
+  searchCode: '',
   curiosityTitle: '',
   shortDescription: '',
   longDescription: '',
@@ -97,6 +99,7 @@ export default function AppForm({ app, onSuccess }: Props) {
     if (app) {
       setForm({
         name: app.name || '',
+        searchCode: app.searchCode || '',
         curiosityTitle: app.curiosityTitle || '',
         shortDescription: app.shortDescription || '',
         longDescription: app.longDescription || '',
@@ -133,7 +136,7 @@ export default function AppForm({ app, onSuccess }: Props) {
       const body = {
         name: form.name,
         slug,
-        searchCode: app?.searchCode || generateSearchCode(),
+        searchCode: form.searchCode.trim() || generateSearchCode(),
         curiosityTitle: form.curiosityTitle || form.name,
         shortDescription: form.shortDescription,
         longDescription: form.longDescription || `${form.shortDescription}`,
@@ -308,8 +311,22 @@ export default function AppForm({ app, onSuccess }: Props) {
               <input readOnly value={previewPackageName} className="w-full px-2 py-1.5 border border-gray-200 rounded text-gray-600 bg-white/60" />
             </div>
             <div>
-              <p className="text-gray-400 mb-0.5">Search Code</p>
-              <input readOnly value={previewSearchCode} className="w-full px-2 py-1.5 border border-gray-200 rounded text-gray-600 bg-white/60" />
+              <p className="text-gray-400 mb-0.5">Search Code <span className="text-gray-400">(used to find the app; can be anything)</span></p>
+              <div className="flex gap-2">
+                <input
+                  className="w-full px-2 py-1.5 border border-gray-200 rounded text-gray-700 bg-white"
+                  value={form.searchCode}
+                  onChange={(e) => setForm({ ...form, searchCode: e.target.value })}
+                  placeholder={previewSearchCode}
+                />
+                <button
+                  type="button"
+                  className="shrink-0 px-2.5 text-xs bg-white border border-gray-300 rounded hover:border-gray-400 text-gray-600"
+                  onClick={() => setForm({ ...form, searchCode: generateSearchCode() })}
+                >
+                  Generate
+                </button>
+              </div>
             </div>
           </div>
         </details>

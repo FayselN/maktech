@@ -23,8 +23,33 @@ class AdService {
 
   bool _canRequestAds = false;
 
+  /// True inside `flutter test` (timers must not be scheduled there).
+  static bool get isTestEnv =>
+      !kIsWeb && Platform.environment.containsKey('FLUTTER_TEST');
+
   /// True once consent flow is done and ads are allowed to be requested.
   bool get canRequestAds => _canRequestAds;
+
+  /// Polls consent state until ads can be requested (UMP completion can lag
+  /// behind widget construction) or the timeout elapses. This is the single
+  /// reason a widget shouldn't give up: consent arriving late is normal.
+  Future<bool> waitForConsent(Duration timeout) async {
+    final deadline = DateTime.now().add(timeout);
+    while (true) {
+      if (_canRequestAds) return true;
+      try {
+        _canRequestAds = await ConsentInformation.instance.canRequestAds();
+      } catch (_) {
+        return false;
+      }
+      if (_canRequestAds) return true;
+      if (DateTime.now().isBefore(deadline)) {
+        await Future<void>.delayed(const Duration(seconds: 2));
+      } else {
+        return false;
+      }
+    }
+  }
 
   /// Phase 7: false = real production ad unit IDs are active.
   static const bool _useTestAds = false;
