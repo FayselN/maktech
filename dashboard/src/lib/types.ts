@@ -36,6 +36,7 @@ export interface App {
   packageName?: string;
   priceType?: 'free' | 'paid' | 'freemium';
   playStoreUrl?: string;
+  appStoreUrl?: string;
   playStoreRating?: number;
   developerName?: string;
   features?: string[];

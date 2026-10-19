@@ -17,14 +17,12 @@ interface ListItem {
 
 interface FormData {
   name: string;
-  slug: string;
-  searchCode: string;
   curiosityTitle: string;
   shortDescription: string;
   longDescription: string;
   developerName: string;
-  packageName: string;
   playStoreUrl: string;
+  appStoreUrl: string;
   iconUrl: string;
   priceType: 'free' | 'paid' | 'freemium';
   playStoreRating: number;
@@ -35,16 +33,16 @@ interface FormData {
   status: 'draft' | 'published';
 }
 
+const DEFAULT_DEVELOPER = 'Mak Tech';
+
 const emptyForm: FormData = {
   name: '',
-  slug: '',
-  searchCode: '',
   curiosityTitle: '',
   shortDescription: '',
   longDescription: '',
-  developerName: '',
-  packageName: '',
+  developerName: DEFAULT_DEVELOPER,
   playStoreUrl: '',
+  appStoreUrl: '',
   iconUrl: '',
   priceType: 'free',
   playStoreRating: 0,
@@ -54,6 +52,30 @@ const emptyForm: FormData = {
   cons: [],
   status: 'draft',
 };
+
+export function extractPackageName(playStoreUrl: string, slug: string): string {
+  try {
+    const match = playStoreUrl.match(/details\?id=([a-zA-Z0-9._]+)/);
+    if (match?.[1]) return match[1];
+  } catch {
+    // fall through to generated id
+  }
+  return `com.maktech.${slug}`;
+}
+
+export function generateSearchCode(): string {
+  return `mt${Date.now().toString(36)}${Math.floor(Math.random() * 10000)}`;
+}
+
+export function slugifyName(name: string): string {
+  return name
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/[\s_]+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '') || `app-${Date.now().toString(36)}`;
+}
 
 export default function AppForm({ app, onSuccess }: Props) {
   const [form, setForm] = useState(emptyForm);
@@ -75,14 +97,12 @@ export default function AppForm({ app, onSuccess }: Props) {
     if (app) {
       setForm({
         name: app.name || '',
-        slug: app.slug || '',
-        searchCode: app.searchCode || '',
         curiosityTitle: app.curiosityTitle || '',
         shortDescription: app.shortDescription || '',
         longDescription: app.longDescription || '',
-        developerName: app.developerName || '',
-        packageName: app.packageName || '',
+        developerName: app.developerName || DEFAULT_DEVELOPER,
         playStoreUrl: app.playStoreUrl || '',
+        appStoreUrl: app.appStoreUrl || '',
         iconUrl: app.iconUrl || '',
         priceType: app.priceType ?? 'free',
         playStoreRating: app.playStoreRating || 0,
@@ -95,22 +115,32 @@ export default function AppForm({ app, onSuccess }: Props) {
     }
   }, [app]);
 
+  // derived technical values that the system manages for the admin
+  const previewSlug = app?.slug || slugifyName(form.name);
+  const previewPackageName = extractPackageName(
+    form.playStoreUrl,
+    previewSlug,
+  );
+  const previewSearchCode = app?.searchCode || 'auto-generated on save';
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError('');
     setSaving(true);
 
     try {
+      const slug = app?.slug || slugifyName(form.name);
       const body = {
         name: form.name,
-        slug: form.slug,
-        searchCode: form.searchCode,
-        curiosityTitle: form.curiosityTitle,
+        slug,
+        searchCode: app?.searchCode || generateSearchCode(),
+        curiosityTitle: form.curiosityTitle || form.name,
         shortDescription: form.shortDescription,
-        longDescription: form.longDescription,
-        developerName: form.developerName,
-        packageName: form.packageName,
+        longDescription: form.longDescription || `${form.shortDescription}`,
+        developerName: form.developerName || DEFAULT_DEVELOPER,
+        packageName: extractPackageName(form.playStoreUrl, slug),
         playStoreUrl: form.playStoreUrl,
+        appStoreUrl: form.appStoreUrl || null,
         iconUrl: form.iconUrl,
         priceType: form.priceType,
         playStoreRating: form.playStoreRating,
@@ -166,31 +196,14 @@ export default function AppForm({ app, onSuccess }: Props) {
       <div className="bg-white rounded-xl p-6 border border-gray-200 space-y-4">
         <h2 className="text-sm font-semibold text-gray-900">Basic Info</h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">App Name *</label>
-            <input className={inputClass} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Slug * <span className="text-gray-400 font-normal">(unique, lowercase, hyphens only)</span></label>
-            <input className={inputClass} value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value.toLowerCase().replace(/\s+/g, '-') })} required placeholder="e.g. my-app-name" />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Search Code * <span className="text-gray-400 font-normal">(unique short code)</span></label>
-            <input className={inputClass} value={form.searchCode} onChange={(e) => setForm({ ...form, searchCode: e.target.value.toLowerCase() })} required placeholder="e.g. app01" />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Package Name *</label>
-            <input className={inputClass} value={form.packageName} onChange={(e) => setForm({ ...form, packageName: e.target.value })} required placeholder="com.example.app" />
-          </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">App Name *</label>
+          <input className={inputClass} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Curiosity Title * <span className="text-gray-400 font-normal">(catchy tagline shown on card)</span></label>
-          <input className={inputClass} value={form.curiosityTitle} onChange={(e) => setForm({ ...form, curiosityTitle: e.target.value })} required placeholder="e.g. Your Second Brain" />
+          <label className="block text-sm font-medium text-gray-700 mb-1">Catchy Tagline <span className="text-gray-400 font-normal">(shown on the app card; leave empty to use the name)</span></label>
+          <input className={inputClass} value={form.curiosityTitle} onChange={(e) => setForm({ ...form, curiosityTitle: e.target.value })} placeholder="e.g. Your Second Brain" />
         </div>
 
         <div>
@@ -206,24 +219,16 @@ export default function AppForm({ app, onSuccess }: Props) {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Developer Name</label>
-            <input className={inputClass} value={form.developerName} onChange={(e) => setForm({ ...form, developerName: e.target.value })} />
+            <label className="block text-sm font-medium text-gray-700 mb-1">Download Link (Play Store or any store URL) *</label>
+            <input className={inputClass} value={form.playStoreUrl} onChange={(e) => setForm({ ...form, playStoreUrl: e.target.value })} required placeholder="https://play.google.com/store/apps/details?id=..." />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Price Type</label>
-            <select className={inputClass} value={form.priceType} onChange={(e) => setForm({ ...form, priceType: e.target.value as any })}>
-              <option value="free">Free</option>
-              <option value="paid">Paid</option>
-              <option value="freemium">Freemium</option>
-            </select>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Second Link <span className="text-gray-400 font-normal">(e.g. App Store — optional)</span></label>
+            <input className={inputClass} value={form.appStoreUrl} onChange={(e) => setForm({ ...form, appStoreUrl: e.target.value })} placeholder="https://apps.apple.com/..." />
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Play Store URL *</label>
-            <input className={inputClass} value={form.playStoreUrl} onChange={(e) => setForm({ ...form, playStoreUrl: e.target.value })} required />
-          </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Icon *</label>
             <div className="space-y-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
@@ -259,7 +264,15 @@ export default function AppForm({ app, onSuccess }: Props) {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Price Type</label>
+            <select className={inputClass} value={form.priceType} onChange={(e) => setForm({ ...form, priceType: e.target.value as any })}>
+              <option value="free">Free</option>
+              <option value="paid">Paid</option>
+              <option value="freemium">Freemium</option>
+            </select>
+          </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Play Store Rating</label>
             <input type="number" step="0.1" min="0" max="5" className={inputClass} value={form.playStoreRating} onChange={(e) => setForm({ ...form, playStoreRating: parseFloat(e.target.value) || 0 })} />
@@ -272,6 +285,34 @@ export default function AppForm({ app, onSuccess }: Props) {
             </select>
           </div>
         </div>
+
+        <details className="rounded-lg border border-gray-200 bg-gray-50 p-4">
+          <summary className="text-xs font-medium text-gray-500 cursor-pointer select-none">
+            Technical details (handled automatically)
+          </summary>
+          <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+            <div>
+              <p className="text-gray-400 mb-0.5">Developer Name</p>
+              <input
+                className="w-full px-2 py-1.5 border border-gray-200 rounded text-gray-700 bg-white"
+                value={form.developerName}
+                onChange={(e) => setForm({ ...form, developerName: e.target.value })}
+              />
+            </div>
+            <div>
+              <p className="text-gray-400 mb-0.5">Slug</p>
+              <input readOnly value={previewSlug} className="w-full px-2 py-1.5 border border-gray-200 rounded text-gray-600 bg-white/60" />
+            </div>
+            <div>
+              <p className="text-gray-400 mb-0.5">Package Name</p>
+              <input readOnly value={previewPackageName} className="w-full px-2 py-1.5 border border-gray-200 rounded text-gray-600 bg-white/60" />
+            </div>
+            <div>
+              <p className="text-gray-400 mb-0.5">Search Code</p>
+              <input readOnly value={previewSearchCode} className="w-full px-2 py-1.5 border border-gray-200 rounded text-gray-600 bg-white/60" />
+            </div>
+          </div>
+        </details>
       </div>
 
       <div className="bg-white rounded-xl p-6 border border-gray-200 space-y-3">

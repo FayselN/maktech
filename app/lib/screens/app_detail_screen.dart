@@ -603,6 +603,23 @@ class _AppDetailScreenState extends State<AppDetailScreen> {
                       ),
                     ],
                   ),
+                  if ((app.appStoreUrl ?? '').isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    OutlinedButton.icon(
+                      onPressed: () async {
+                        final uri = Uri.parse(app.appStoreUrl!);
+                        if (await canLaunchUrl(uri)) {
+                          await launchUrl(
+                            uri,
+                            mode: LaunchMode.externalApplication,
+                          );
+                        }
+                      },
+                      icon: const Icon(Icons.apple_outlined, size: 18),
+                      label: const Text('Download on App Store'),
+                    ),
+                  ],
+                  const SizedBox(height: 8),
                   const Text(
                     'Rating & Reviews',
                     style: TextStyle(

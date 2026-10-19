@@ -9,6 +9,7 @@ class AppModel {
   final String? developerName;
   final String packageName;
   final String playStoreUrl;
+  final String? appStoreUrl;
   final String iconUrl;
   final String priceType;
   final double playStoreRating;
@@ -36,6 +37,7 @@ class AppModel {
     this.developerName,
     required this.packageName,
     required this.playStoreUrl,
+    this.appStoreUrl,
     required this.iconUrl,
     required this.priceType,
     required this.playStoreRating,
@@ -65,6 +67,7 @@ class AppModel {
       developerName: json['developerName'] as String?,
       packageName: json['packageName'] as String,
       playStoreUrl: json['playStoreUrl'] as String,
+      appStoreUrl: json['appStoreUrl'] as String?,
       iconUrl: json['iconUrl'] as String,
       priceType: json['priceType'] as String? ?? 'free',
       playStoreRating: (json['playStoreRating'] as num?)?.toDouble() ?? 0,

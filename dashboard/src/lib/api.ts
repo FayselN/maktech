@@ -47,6 +47,7 @@ function normalizeApp(row: Record<string, unknown>): Record<string, unknown> {
     developerName: row.developer_name,
     packageName: row.package_name,
     playStoreUrl: row.play_store_url,
+    appStoreUrl: row.app_store_url ?? '',
     iconUrl: row.icon_url,
     priceType: row.price_type,
     playStoreRating: Number(row.play_store_rating ?? 0),
@@ -90,6 +91,7 @@ const payload: Record<string, unknown> = {
     developer_name: b.developer_name || null,
     package_name: b.package_name,
     play_store_url: b.play_store_url,
+    app_store_url: b.app_store_url || null,
     icon_url: b.icon_url,
     price_type: b.price_type ?? 'free',
     play_store_rating: b.play_store_rating ?? 0,
@@ -216,11 +218,12 @@ async function updateApp(id: string, input: Record<string, unknown>): Promise<Re
   const adminId = await requireAdminId();
   const prepared = appWriteBody(input) as Record<string, unknown> & { _categorySlugs: string[] };
   const { _categorySlugs, ...payload } = prepared;
-  void payload.slug; // slug stays fixed after creation
+  payload.slug = undefined;
   const { error } = await supabase
     .from('apps')
     .update({
       ...payload,
+      slug: undefined,
       updated_by: adminId,
     })
     .eq('id', id);
