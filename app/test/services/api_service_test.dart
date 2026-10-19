@@ -1,18 +1,17 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:http/http.dart' as http;
-import 'package:maktech/services/api_service.dart';
 import 'package:maktech/config/api_config.dart';
+import 'package:maktech/services/api_service.dart';
 
 void main() {
-  group('ApiService error handling', () {
-    late ApiService apiService;
-
-    setUp(() {
-      apiService = ApiService();
+  group('ApiService', () {
+    test('reports uninitialized access cleanly', () {
+      final api = ApiService();
+      expect(api.get('/apps'), throwsA(isA<ApiException>()));
     });
 
-    test('uses correct base URL', () {
-      expect(ApiConfig.baseUrl, 'https://maktech.onrender.com/api');
+    test('config exposes supabase endpoint', () {
+      expect(ApiConfig.supabaseUrl, startsWith('https://'));
+      expect(ApiConfig.supabaseAnonKey, isNotEmpty);
       expect(ApiConfig.timeout, const Duration(seconds: 30));
     });
   });

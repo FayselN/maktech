@@ -22,4 +22,23 @@ class ApiConfig {
   }
 
   static const Duration timeout = Duration(seconds: 30);
+
+  // Supabase backend (Data API + Auth). Keys are public anon keys.
+  static const String _supabaseUrl = 'https://skazmwbfhtennqhszemm.supabase.co';
+  static const String _supabaseAnonKey =
+      String.fromEnvironment('SUPABASE_ANON_KEY',
+          defaultValue:
+              'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNrYXptd2JmaHRlbm5xaHN6ZW1tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIyNDM0NDksImV4cCI6MjEwNzgxOTQ0OX0.ssYoOkF69RGU_qlc3CcXgV05V7p7mVKQ2TaeYtkmJwg');
+
+  static String get supabaseUrl {
+    const envUrl = String.fromEnvironment('SUPABASE_URL');
+    if (envUrl.isNotEmpty) return envUrl;
+    return _supabaseUrl;
+  }
+
+  static String get supabaseAnonKey {
+    const envKey = String.fromEnvironment('SUPABASE_ANON_KEY');
+    if (envKey.isNotEmpty) return envKey;
+    return _supabaseAnonKey;
+  }
 }
