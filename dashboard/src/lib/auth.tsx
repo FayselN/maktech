@@ -1,6 +1,7 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
+import { supabase } from './supabase';
 import { api } from './api';
 import type { User } from './types';
 
@@ -20,40 +21,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const saved = localStorage.getItem('token');
-    if (saved) {
-      api.setToken(saved);
-      setToken(saved);
+    // restore session + verify the admin profile still exists and is active
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!session) {
+        setLoading(false);
+        return;
+      }
       api.get<{ admin: User }>('/admin/auth/me')
         .then((res) => {
-          if (res.admin.role !== 'admin') {
-            throw new Error('Not an admin');
-          }
           setUser(res.admin);
+          setToken(session.access_token);
         })
-        .catch(() => {
-          localStorage.removeItem('token');
-          api.setToken(null);
-          setToken(null);
-        })
+        .catch(() => supabase.auth.signOut())
         .finally(() => setLoading(false));
-    } else {
-      setLoading(false);
-    }
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!session) {
+        setUser(null);
+        setToken(null);
+      }
+    });
+    return () => subscription.unsubscribe();
   }, []);
 
   const login = useCallback(async (email: string, password: string) => {
     const res = await api.post<{ token: string; admin: User }>('/admin/auth/login', { email, password });
-    if (res.admin.role !== 'admin') {
+    if (res.admin?.role !== 'admin') {
       throw new Error('Admin access required');
     }
-    api.setToken(res.token);
     setToken(res.token);
-    setUser(res.admin);
+    setUser(res.admin as User);
   }, []);
 
   const logout = useCallback(() => {
-    api.setToken(null);
+    supabase.auth.signOut();
     setToken(null);
     setUser(null);
   }, []);
