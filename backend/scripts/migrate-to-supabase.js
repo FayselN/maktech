@@ -148,9 +148,19 @@ function qd(date) {
   return new Date(date).toISOString();
 }
 
+// GoTrue requires instance_id = 00000000-... and non-NULL token columns;
+// SQL-inserted rows missing them are invisible to / unusable by the auth API.
+const AUTH_USER_HYGIENE = `
+update auth.users set instance_id = '00000000-0000-0000-0000-000000000000' where instance_id is null;
+update auth.users set
+  confirmation_token = '', recovery_token = '', email_change_token_new = '',
+  email_change = '', email_change_token_current = coalesce(email_change_token_current, ''),
+  reauthentication_token = coalesce(reauthentication_token, ''),
+  phone_change_token = coalesce(phone_change_token, '')
+where instance_id = '00000000-0000-0000-0000-000000000000';`;
+
 // anonymous auth users for every mongo device (one per device)
-function anonUserValues(users) {
-  return users
+function anonUserValues(users) {  return users
     .map(
       (u) => `(${q(u.id)}, 'authenticated', 'authenticated', true, ${q(u.created)}, ${q(u.created)})`,
     )
@@ -193,6 +203,7 @@ async function insertAuthRows(anonUsers, admins) {
       )}\non conflict (id) do nothing;`,
     );
   }
+  stmts.push(AUTH_USER_HYGIENE);
   sqlFile('auth_users', stmts);
 }
 
