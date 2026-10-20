@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -33,6 +35,7 @@ void main() async {
 
   // UMP consent must finish before any ad is requested (Phase 3 flow).
   await AdService.instance.requestConsent();
+  unawaited(AdService.instance.preloadInterstitial());
 
   runApp(
     MultiProvider(

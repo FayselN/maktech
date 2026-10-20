@@ -61,16 +61,37 @@ class AdService {
   static const String _testNativeAndroid =
       'ca-app-pub-3940256099942544/2247696110';
   static const String _testNativeIos = 'ca-app-pub-3940256099942544/3986624511';
+  static const String _testInterstitialAndroid =
+      'ca-app-pub-3940256099942544/1033173712';
+  static const String _testInterstitialIos =
+      'ca-app-pub-3940256099942544/4434898707';
 
   /// MakTech production ad unit IDs.
   static const String _prodBanner = 'ca-app-pub-8377801269353159/6238987088';
   static const String _prodNative = 'ca-app-pub-8377801269353159/3014057947';
+
+  /// Replace the X placeholders with the real interstitial IDs from the AdMob
+  /// console; until then the official test IDs are used as a safe fallback.
+  static const String _prodInterstitialAndroid =
+      'ca-app-pub-8377801269353159/XXXXXXXXXX';
+  static const String _prodInterstitialIos =
+      'ca-app-pub-8377801269353159/XXXXXXXXXX';
 
   String get bannerAdUnitId {
     if (_useTestAds) {
       return Platform.isIOS ? _testBannerIos : _testBannerAndroid;
     }
     return _prodBanner;
+  }
+
+  String get interstitialAdUnitId {
+    if (_useTestAds) {
+      return Platform.isIOS ? _testInterstitialIos : _testInterstitialAndroid;
+    }
+    final prod = Platform.isIOS ? _prodInterstitialIos : _prodInterstitialAndroid;
+    return prod.contains('XXXXXXXXXX')
+        ? (Platform.isIOS ? _testInterstitialIos : _testInterstitialAndroid)
+        : prod;
   }
 
   String get nativeAdUnitId {
@@ -139,5 +160,87 @@ class AdService {
   Future<PrivacyOptionsRequirementStatus>
       getPrivacyOptionsRequirementStatus() {
     return ConsentInformation.instance.getPrivacyOptionsRequirementStatus();
+  }
+
+  // ---------------------------------------------------------------------------
+  // Interstitial
+  // ---------------------------------------------------------------------------
+
+  InterstitialAd? _interstitial;
+  DateTime _lastInterstitialShown = DateTime.fromMillisecondsSinceEpoch(0);
+  int _detailVisits = 0;
+  bool _interstitialReloading = false;
+
+  /// Minimum spacing between two interstitials (policy-friendly).
+  static const Duration _interstitialInterval = Duration(minutes: 2);
+
+  /// Skip the first N app-detail screens of a session (grace period).
+  static const int _interstitialMinDetailVisits = 2;
+
+  /// Eagerly load the interstitial right after the consent flow. No-op in
+  /// widget tests (timers would keep tests pending).
+  Future<void> preloadInterstitial() async {
+    if (isTestEnv) return;
+    if (!await waitForConsent(const Duration(seconds: 45))) return;
+    await _loadInterstitial();
+  }
+
+  Future<void> _loadInterstitial() {
+    if (isTestEnv || _interstitialReloading) return Future.value();
+    _interstitialReloading = true;
+    final done = Completer<void>();
+    InterstitialAd.load(
+      adUnitId: interstitialAdUnitId,
+      request: const AdRequest(),
+      adLoadCallback: InterstitialAdLoadCallback(
+        onAdLoaded: (ad) {
+          _interstitial?.dispose();
+          _interstitial = ad;
+          _interstitialReloading = false;
+          if (!done.isCompleted) done.complete();
+          debugPrint('Interstitial ready');
+        },
+        onAdFailedToLoad: (error) {
+          _interstitial?.dispose();
+          _interstitial = null;
+          _interstitialReloading = false;
+          if (!done.isCompleted) done.complete();
+          debugPrint('Interstitial failed to load: $error');
+          Future<void>.delayed(const Duration(seconds: 60), _loadInterstitial);
+        },
+      ),
+    );
+    return done.future;
+  }
+
+  /// Detail screens report themselves on open; the grace counter keys off it.
+  void recordDetailVisit() => _detailVisits++;
+
+  /// Shows the interstitial if: loaded + outside the grace period + interval
+  /// elapsed. Otherwise a silent no-op. Reloads a fresh ad after showing.
+  void maybeShowInterstitial() {
+    if (isTestEnv) return;
+    if (_detailVisits < _interstitialMinDetailVisits) return;
+    if (DateTime.now().difference(_lastInterstitialShown) <
+        _interstitialInterval) {
+      return;
+    }
+    final ad = _interstitial;
+    if (ad == null) return;
+
+    _lastInterstitialShown = DateTime.now();
+    _interstitial = null;
+    ad.fullScreenContentCallback = FullScreenContentCallback(
+      onAdDismissedFullScreenContent: (shown) {
+        shown.dispose();
+        _loadInterstitial();
+      },
+      onAdFailedToShowFullScreenContent: (shown, error) {
+        debugPrint('Interstitial failed to show: $error');
+        shown.dispose();
+        _loadInterstitial();
+      },
+    );
+    ad.show();
   }
 }

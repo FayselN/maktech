@@ -9,6 +9,7 @@ import '../providers/app_provider.dart';
 import '../providers/favorite_provider.dart';
 import '../models/review_model.dart';
 import '../services/api_service.dart';
+import '../services/ad_service.dart';
 import '../services/cache_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/device_utils.dart';
@@ -34,6 +35,7 @@ class _AppDetailScreenState extends State<AppDetailScreen> {
   @override
   void initState() {
     super.initState();
+    AdService.instance.recordDetailVisit();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       context.read<AppProvider>().loadAppDetail(widget.appId);
@@ -300,7 +302,12 @@ class _AppDetailScreenState extends State<AppDetailScreen> {
       );
     }
 
-    return Scaffold(
+    return PopScope(
+      onPopInvokedWithResult: (didPop, result) {
+        // natural transition: returning from app detail → list
+        if (didPop) AdService.instance.maybeShowInterstitial();
+      },
+      child: Scaffold(
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
@@ -646,6 +653,7 @@ class _AppDetailScreenState extends State<AppDetailScreen> {
             ),
           ),
         ],
+      ),
       ),
     );
   }
