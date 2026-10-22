@@ -89,6 +89,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   ),
                 );
                 if (confirmed == true) {
+                  if (!context.mounted) return;
                   await context.read<NotificationProvider>().clearAll();
                   if (mounted) _load();
                 }

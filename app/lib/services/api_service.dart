@@ -65,6 +65,7 @@ class ApiService {
     // need network and each request already lazily calls _ensureDevice().
     await Supabase.initialize(
       url: ApiConfig.supabaseUrl,
+      // ignore: deprecated_member_use
       anonKey: ApiConfig.supabaseAnonKey,
       authOptions: const FlutterAuthClientOptions(autoRefreshToken: true),
     );

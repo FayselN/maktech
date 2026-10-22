@@ -7,7 +7,7 @@ class NotificationProvider extends ChangeNotifier {
 
   int _unreadCount = 0;
   List<NotificationModel> _notifications = [];
-  bool _loading = false;
+  final bool _loading = false;
 
   int get unreadCount => _unreadCount;
   bool get hasUnread => _unreadCount > 0;
