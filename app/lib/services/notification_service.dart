@@ -20,6 +20,21 @@ class NotificationService {
   VoidCallback? onForegroundMessageReceived;
 
   Future<void> init() async {
+    // Wait for Firebase.initializeApp() to complete (it's deferred to run in
+    // parallel with the first frame, so the FCM instance may not be ready
+    // the instant this runs). Retry for up to ~5s.
+    for (var i = 0; i < 25; i++) {
+      try {
+        await _doInit();
+        return;
+      } catch (_) {
+        await Future<void>.delayed(const Duration(milliseconds: 200));
+      }
+    }
+    debugPrint('NotificationService init gave up waiting for Firebase');
+  }
+
+  Future<void> _doInit() async {
     try {
       const androidSettings = AndroidInitializationSettings(
         '@mipmap/ic_launcher',

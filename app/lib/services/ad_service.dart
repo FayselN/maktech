@@ -51,6 +51,15 @@ class AdService {
     }
   }
 
+  /// Same as waitForConsent, but re-runs the full UMP flow first if consent
+  /// is still missing — covers offline launches where the consent info update
+  /// failed and would otherwise leave ads dead for the whole session.
+  Future<bool> waitForConsentWithRetry(Duration timeout) async {
+    if (await waitForConsent(timeout)) return true;
+    await requestConsent();
+    return waitForConsent(timeout);
+  }
+
   /// Phase 7: false = real production ad unit IDs are active.
   static const bool _useTestAds = false;
 
@@ -70,12 +79,11 @@ class AdService {
   static const String _prodBanner = 'ca-app-pub-8377801269353159/6238987088';
   static const String _prodNative = 'ca-app-pub-8377801269353159/3014057947';
 
-  /// Replace the X placeholders with the real interstitial IDs from the AdMob
-  /// console; until then the official test IDs are used as a safe fallback.
+  /// MakTech production interstitial ad unit ID (single ID for Android+iOS).
   static const String _prodInterstitialAndroid =
-      'ca-app-pub-8377801269353159/XXXXXXXXXX';
+      'ca-app-pub-8377801269353159/6229129242';
   static const String _prodInterstitialIos =
-      'ca-app-pub-8377801269353159/XXXXXXXXXX';
+      'ca-app-pub-8377801269353159/6229129242';
 
   String get bannerAdUnitId {
     if (_useTestAds) {
@@ -88,10 +96,7 @@ class AdService {
     if (_useTestAds) {
       return Platform.isIOS ? _testInterstitialIos : _testInterstitialAndroid;
     }
-    final prod = Platform.isIOS ? _prodInterstitialIos : _prodInterstitialAndroid;
-    return prod.contains('XXXXXXXXXX')
-        ? (Platform.isIOS ? _testInterstitialIos : _testInterstitialAndroid)
-        : prod;
+    return Platform.isIOS ? _prodInterstitialIos : _prodInterstitialAndroid;
   }
 
   String get nativeAdUnitId {
@@ -167,22 +172,35 @@ class AdService {
   // ---------------------------------------------------------------------------
 
   InterstitialAd? _interstitial;
-  DateTime _lastInterstitialShown = DateTime.fromMillisecondsSinceEpoch(0);
-  int _detailVisits = 0;
   bool _interstitialReloading = false;
-
-  /// Minimum spacing between two interstitials (policy-friendly).
-  static const Duration _interstitialInterval = Duration(minutes: 2);
-
-  /// Skip the first N app-detail screens of a session (grace period).
-  static const int _interstitialMinDetailVisits = 2;
+  Completer<void>? _showCompleter;
 
   /// Eagerly load the interstitial right after the consent flow. No-op in
   /// widget tests (timers would keep tests pending).
+  ///
+  /// Keeps polling until consent is obtainable: an offline launch used to
+  /// kill this session's ads permanently (nothing ever re-ran the consent
+  /// flow). The load itself self-retries every 60s via its failure callback.
   Future<void> preloadInterstitial() async {
     if (isTestEnv) return;
-    if (!await waitForConsent(const Duration(seconds: 45))) return;
-    await _loadInterstitial();
+    var reshuffles = 0;
+    while (true) {
+      if (await waitForConsent(const Duration(seconds: 30))) {
+        if (_interstitial == null && !_interstitialReloading) {
+          await _loadInterstitial();
+          // Considered done either way: on failure the load callback keeps
+          // its own 60s retry chain alive for the rest of the session.
+        }
+        return;
+      }
+      reshuffles++;
+      // Re-run the UMP flow every ~2.5 min (rate-limited, form only re-shows
+      // when required) — not every cycle, to avoid spamming the form.
+      if (reshuffles.isEven) {
+        await requestConsent();
+      }
+      await Future<void>.delayed(const Duration(seconds: 30));
+    }
   }
 
   Future<void> _loadInterstitial() {
@@ -213,34 +231,51 @@ class AdService {
     return done.future;
   }
 
-  /// Detail screens report themselves on open; the grace counter keys off it.
-  void recordDetailVisit() => _detailVisits++;
-
-  /// Shows the interstitial if: loaded + outside the grace period + interval
-  /// elapsed. Otherwise a silent no-op. Reloads a fresh ad after showing.
-  void maybeShowInterstitial() {
-    if (isTestEnv) return;
-    if (_detailVisits < _interstitialMinDetailVisits) return;
-    if (DateTime.now().difference(_lastInterstitialShown) <
-        _interstitialInterval) {
-      return;
-    }
+  /// Shows the interstitial on Download, awaiting it fully before returning,
+  /// so the caller can safely resume (e.g. launch the Play Store URL) only
+  /// after the ad has closed.
+  ///
+  /// Your users are single-purpose: they arrive from TikTok, look at one app,
+  /// tap Download once, and leave. So this fires on every Download tap — no
+  /// grace period, no interval cap. The ad is the reward for the user
+  /// finishing their task; showing it on the way out is the natural moment.
+  ///
+  /// No-op if the ad isn't loaded yet (a failed load keeps its own 60s retry
+  /// chain alive), so we never block the user on a slow re-request.
+  Future<void> showInterstitial() async {
     final ad = _interstitial;
-    if (ad == null) return;
+    if (isTestEnv || ad == null) return;
 
-    _lastInterstitialShown = DateTime.now();
     _interstitial = null;
+    final completer = Completer<void>();
+    _showCompleter = completer;
+
     ad.fullScreenContentCallback = FullScreenContentCallback(
       onAdDismissedFullScreenContent: (shown) {
         shown.dispose();
         _loadInterstitial();
+        _completeShow();
       },
       onAdFailedToShowFullScreenContent: (shown, error) {
         debugPrint('Interstitial failed to show: $error');
         shown.dispose();
         _loadInterstitial();
+        _completeShow();
       },
     );
     ad.show();
+
+    // Safety net: if the callbacks above never fire (SDK quirk), don't leave
+    // the caller stranded — resume after 30s so the Play Store link still opens.
+    await Future.any([
+      completer.future,
+      Future<void>.delayed(const Duration(seconds: 30)),
+    ]);
+  }
+
+  void _completeShow() {
+    final c = _showCompleter;
+    _showCompleter = null;
+    if (c != null && !c.isCompleted) c.complete();
   }
 }

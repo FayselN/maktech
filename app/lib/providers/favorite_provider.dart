@@ -16,6 +16,19 @@ class FavoriteProvider extends ChangeNotifier {
   bool get loading => _loading;
   String? get error => _error?.message;
 
+  FavoriteProvider() {
+    // Same warm-start hydrate as AppProvider: hearts and the favorites list
+    // render from Hive on the first frame after a process kill.
+    final cached = _cache.getCached<List<AppModel>>(
+      'favorites_data',
+      (json) => (json as List).map((a) => AppModel.fromJson(a)).toList(),
+    );
+    if (cached != null) {
+      _favorites = cached;
+      _favoriteIds = cached.map((a) => a.id).toSet();
+    }
+  }
+
   Future<void> loadFavorites({bool forceRefresh = false}) async {
     _loading = true;
     _error = null;

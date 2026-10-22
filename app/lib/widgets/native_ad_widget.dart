@@ -40,7 +40,7 @@ class _NativeAdWidgetState extends State<NativeAdWidget> {
 
   Future<void> _loadWithRetry() async {
     final allowed = await AdService.instance
-        .waitForConsent(const Duration(seconds: 45));
+        .waitForConsentWithRetry(const Duration(seconds: 45));
     if (!allowed || !mounted || _disposed) return;
 
     const maxAttempts = 6;

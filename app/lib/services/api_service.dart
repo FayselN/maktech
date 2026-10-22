@@ -25,6 +25,11 @@ class ApiException implements Exception {
 class ApiService {
   SupabaseClient? _client;
   String? _deviceUuid;
+  final Completer<void> _clientReady = Completer<void>();
+
+  /// Hard cap per request: without it a request to a reachable-but-broken
+  /// network (captive portal, dead wifi) can hang for minutes.
+  static const _requestTimeout = Duration(seconds: 15);
 
   static final ApiService _instance = ApiService._internal();
   factory ApiService() => _instance;
@@ -38,26 +43,56 @@ class ApiService {
     return c;
   }
 
+  /// Never blocks the first frame. `Supabase.initialize` restores the
+  /// persisted GoTrue session, and with an expired session offline that
+  /// restore hangs on the token refresh — which used to freeze the app on
+  /// the splash screen because runApp awaited this. Now: first attempt gets
+  /// a short timeout, then a background loop retries until it lands. The
+  /// client itself is created synchronously inside initialize (before the
+  /// session restore), so the retry attaches it within ~2s even while the
+  /// original attempt is still stuck on the network.
   Future<void> init() async {
+    try {
+      await _initialize().timeout(const Duration(seconds: 3));
+    } catch (e) {
+      debugPrint('[api] init timed out/failed, retrying in background: $e');
+      unawaited(_retryInitUntilReady());
+    }
+  }
+
+  Future<void> _initialize() async {
+    // Anon sign-in + device register are intentionally NOT done here: they
+    // need network and each request already lazily calls _ensureDevice().
     await Supabase.initialize(
       url: ApiConfig.supabaseUrl,
       anonKey: ApiConfig.supabaseAnonKey,
       authOptions: const FlutterAuthClientOptions(autoRefreshToken: true),
     );
-    _client = Supabase.instance.client;
+    _attachClient();
+  }
 
-    try {
-      await _checkConnectivity();
-      if (_supabase.auth.currentSession == null) {
-        await _supabase.auth.signInAnonymously();
+  Future<void> _retryInitUntilReady() async {
+    while (_client == null) {
+      await Future<void>.delayed(const Duration(seconds: 2));
+      try {
+        // No-op if the timed-out first attempt already finished initialize();
+        // otherwise a second initialize returns the same singleton client.
+        await _initialize().timeout(const Duration(seconds: 5));
+        debugPrint('[api] Supabase client ready after retry');
+      } catch (e) {
+        debugPrint('[api] init retry failed: $e');
       }
-      await _registerDevice();
-    } on ApiException {
-      rethrow;
-    } catch (e) {
-      // Start-up must not block on network issues; calls will retry lazily.
-      debugPrint('[api] init deferred: $e');
     }
+  }
+
+  void _attachClient() {
+    _client = Supabase.instance.client;
+    if (!_clientReady.isCompleted) _clientReady.complete();
+  }
+
+  Future<void> _ensureClient() async {
+    if (_client != null) return;
+    await _clientReady.future.timeout(const Duration(seconds: 5));
   }
 
   Future<void> _ensureDevice() async {
@@ -109,7 +144,9 @@ class ApiService {
   Future<dynamic> get(String path, {Map<String, String>? queryParams}) async {
     try {
       await _checkConnectivity();
-      return await _routeGet(path, queryParams ?? const {});
+      await _ensureClient();
+      return await _routeGet(path, queryParams ?? const {})
+          .timeout(_requestTimeout);
     } on ApiException {
       rethrow;
     } catch (e) {
@@ -120,7 +157,8 @@ class ApiService {
   Future<dynamic> post(String path, {Map<String, dynamic>? body}) async {
     try {
       await _checkConnectivity();
-      return await _routePost(path, body ?? const {});
+      await _ensureClient();
+      return await _routePost(path, body ?? const {}).timeout(_requestTimeout);
     } on ApiException {
       rethrow;
     } catch (e) {
@@ -131,7 +169,8 @@ class ApiService {
   Future<dynamic> put(String path, {Map<String, dynamic>? body}) async {
     try {
       await _checkConnectivity();
-      return await _routePut(path, body ?? const {});
+      await _ensureClient();
+      return await _routePut(path, body ?? const {}).timeout(_requestTimeout);
     } on ApiException {
       rethrow;
     } catch (e) {
@@ -142,7 +181,8 @@ class ApiService {
   Future<dynamic> delete(String path) async {
     try {
       await _checkConnectivity();
-      return await _routeDelete(path);
+      await _ensureClient();
+      return await _routeDelete(path).timeout(_requestTimeout);
     } on ApiException {
       rethrow;
     } catch (e) {

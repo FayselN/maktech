@@ -29,8 +29,8 @@ static const String _testInterstitialIos = 'ca-app-pub-3940256099942544/44348987
 
 static const String _prodAppOpenAndroid = 'ca-app-pub-8377801269353159/XXXXXXXXXX';
 static const String _prodAppOpenIos = 'ca-app-pub-8377801269353159/XXXXXXXXXX';
-static const String _prodInterstitialAndroid = 'ca-app-pub-8377801269353159/XXXXXXXXXX';
-static const String _prodInterstitialIos = 'ca-app-pub-8377801269353159/XXXXXXXXXX';
+static const String _prodInterstitialAndroid = 'ca-app-pub-8377801269353159/6229129242';
+static const String _prodInterstitialIos = 'ca-app-pub-8377801269353159/6229129242';
 ```
 
 ## Step 1 — extend AdService (app/lib/services/ad_service.dart)

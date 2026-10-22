@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import '../models/app_model.dart';
 import '../services/api_service.dart';
@@ -20,6 +21,31 @@ class AppProvider extends ChangeNotifier {
   
   ApiException? _apiError;
   bool _isOfflineMode = false;
+
+  AppProvider() {
+    // Hydrate synchronously from Hive so the first frame after a process
+    // kill (Android restarted us) already has content — no skeleton, no
+    // spinner. The network refresh still happens in loadHomeData().
+    _trending = _cache.getCached<List<AppModel>>(
+          'trending_apps',
+          (json) => (json as List).map((a) => AppModel.fromJson(a)).toList(),
+        ) ??
+        [];
+    _newApps = _cache.getCached<List<AppModel>>(
+          'new_apps',
+          (json) => (json as List).map((a) => AppModel.fromJson(a)).toList(),
+        ) ??
+        [];
+    _dailyFeatured = _cache.getCached<AppModel?>(
+      'daily_featured',
+      (json) => json != null ? AppModel.fromJson(json) : null,
+    );
+    _recentlyViewed = _cache.getCached<List<AppModel>>(
+          'recently_viewed_apps',
+          (json) => (json as List).map((a) => AppModel.fromJson(a)).toList(),
+        ) ??
+        [];
+  }
 
   List<AppModel> get trending => _trending;
   List<AppModel> get newApps => _newApps;
@@ -133,22 +159,30 @@ class AppProvider extends ChangeNotifier {
       notifyListeners();
     }
 
-    // 2. Background refresh
-    final ok = await _cache.tryFetchAndCache<AppModel>(
-      cacheKey: cacheKey,
-      fetchFunction: () => _api.get('/apps/$id'),
-      fromJson: (json) => AppModel.fromJson(json),
-    );
-    if (ok) {
-      final fresh = _cache.getCached<AppModel>(
-        cacheKey,
-        (json) => AppModel.fromJson(json),
+    // 2. Background refresh (skipped when the cache is already fresh — re-
+    //    entering a detail screen within the TTL must not fire a new request)
+    if (!_cache.isFresh(cacheKey, const Duration(minutes: 5))) {
+      final ok = await _cache.tryFetchAndCache<AppModel>(
+        cacheKey: cacheKey,
+        fetchFunction: () => _api.get('/apps/$id'),
+        fromJson: (json) => AppModel.fromJson(json),
       );
-      _selectedApp = fresh ?? _selectedApp;
+      if (ok) {
+        final fresh = _cache.getCached<AppModel>(
+          cacheKey,
+          (json) => AppModel.fromJson(json),
+        );
+        _selectedApp = fresh ?? _selectedApp;
+      }
+      // Silently stay on cached data if fetch fails
     }
-    // Silently stay on cached data if fetch fails
 
-    try { await _api.post('/apps/$id/view'); } catch (_) {}
+    // View tracking is fire-and-forget and MUST NOT block the screen's
+    // pop/enter transition — a pending network call here is what made the
+    // "back then re-enter" feel slow.
+    unawaited(
+      _api.post('/apps/$id/view').catchError((_) {}),
+    );
     if (cached == null) _loading = false;
     notifyListeners();
   }

@@ -35,7 +35,6 @@ class _AppDetailScreenState extends State<AppDetailScreen> {
   @override
   void initState() {
     super.initState();
-    AdService.instance.recordDetailVisit();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       context.read<AppProvider>().loadAppDetail(widget.appId);
@@ -53,19 +52,39 @@ class _AppDetailScreenState extends State<AppDetailScreen> {
   }
 
   Future<void> _loadReviews() async {
-    try {
-      final response = await ApiService().get(
-        '/apps/${widget.appId}/reviews',
-        queryParams: {'limit': '50'},
-      );
-      final reviews = (response['reviews'] as List)
-          .map((review) => ReviewModel.fromJson(review as Map<String, dynamic>))
+    // Cache-first with a short TTL: re-entering the same detail screen within
+    // the window must not fire a fresh reviews request every time (that is
+    // what made back-then-re-enter feel slow).
+    final cacheKey = 'reviews_${widget.appId}';
+    final cached = CacheService().getCached<Map<String, dynamic>>(
+      cacheKey,
+      (json) => Map<String, dynamic>.from(json as Map),
+    );
+    if (cached != null) {
+      _reviews = (cached['reviews'] as List)
+          .map((r) => ReviewModel.fromJson(r as Map<String, dynamic>))
           .toList();
-      if (mounted) setState(() => _reviews = reviews);
-    } catch (_) {
-      // The app details remain usable if reviews cannot be loaded.
-    } finally {
-      if (mounted) setState(() => _reviewsLoading = false);
+      _reviewsLoading = false;
+      setState(() {});
+    }
+
+    if (!CacheService().isFresh(cacheKey, const Duration(minutes: 2))) {
+      try {
+        final response = await ApiService().get(
+          '/apps/${widget.appId}/reviews',
+          queryParams: {'limit': '50'},
+        );
+        final reviews = (response['reviews'] as List)
+            .map((review) => ReviewModel.fromJson(review as Map<String, dynamic>))
+            .toList();
+        if (!mounted) return;
+        setState(() => _reviews = reviews);
+        CacheService().putCache(cacheKey, {'reviews': response['reviews']});
+      } catch (_) {
+        // The app details remain usable if reviews cannot be loaded.
+      } finally {
+        if (mounted) setState(() => _reviewsLoading = false);
+      }
     }
   }
 
@@ -303,25 +322,34 @@ class _AppDetailScreenState extends State<AppDetailScreen> {
     }
 
     return PopScope(
-      onPopInvokedWithResult: (didPop, result) {
-        // natural transition: returning from app detail → list
-        if (didPop) AdService.instance.maybeShowInterstitial();
-      },
       child: Scaffold(
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
-            expandedHeight: 260,
+            // Screenshots are 16:9 (e.g. 1280x720). Full width + a bottom
+            // band for the icon/title row shows every pixel, no side-crop.
+            expandedHeight: MediaQuery.sizeOf(context).width * 9 / 16 + 56,
             pinned: true,
             flexibleSpace: FlexibleSpaceBar(
               background: Stack(
                 fit: StackFit.expand,
                 children: [
+                  // Letterbox band (behind the icon/count row) + fallback
+                  Container(
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [AppTheme.primary, AppTheme.primaryDark],
+                      ),
+                    ),
+                  ),
                   CachedNetworkImage(
                     imageUrl: app.screenshots.isNotEmpty
                         ? app.screenshots.first.url
                         : app.iconUrl,
-                    fit: BoxFit.cover,
+                    fit: BoxFit.contain,
+                    alignment: Alignment.topCenter,
                     placeholder: (_, _) => Container(
                       decoration: const BoxDecoration(
                         gradient: LinearGradient(
@@ -331,17 +359,8 @@ class _AppDetailScreenState extends State<AppDetailScreen> {
                         ),
                       ),
                     ),
-                    errorWidget: (_, _, _) => Container(
-                      decoration: const BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [AppTheme.primary, AppTheme.primaryDark],
-                        ),
-                      ),
-                      child: const Center(
-                        child: Icon(Icons.explore, color: Colors.white, size: 64),
-                      ),
+                    errorWidget: (_, _, _) => const Center(
+                      child: Icon(Icons.explore, color: Colors.white, size: 64),
                     ),
                   ),
                   Container(
@@ -514,8 +533,9 @@ class _AppDetailScreenState extends State<AppDetailScreen> {
                       ),
                     ),
                     const SizedBox(height: 8),
+                    // 16:9 tiles match the 1280x720 thumbnails, no cropping
                     SizedBox(
-                      height: 200,
+                      height: 98,
                       child: ListView.separated(
                         scrollDirection: Axis.horizontal,
                         itemCount: app.screenshots.length,
@@ -524,7 +544,7 @@ class _AppDetailScreenState extends State<AppDetailScreen> {
                           borderRadius: BorderRadius.circular(12),
                           child: Image.network(
                             app.screenshots[i].url,
-                            width: 120,
+                            width: 174,
                             fit: BoxFit.cover,
                           ),
                         ),
@@ -562,6 +582,11 @@ class _AppDetailScreenState extends State<AppDetailScreen> {
                         child: ElevatedButton.icon(
                           onPressed: () async {
                             final uri = Uri.parse(app.playStoreUrl);
+                            // Show the interstitial first, fully. The user is
+                            // about to leave, so the ad is the natural "on the
+                            // way out" moment. Resume the Play Store launch only
+                            // after the ad has closed (or failed to show).
+                            await AdService.instance.showInterstitial();
                             if (await canLaunchUrl(uri)) {
                               await launchUrl(
                                 uri,
@@ -615,6 +640,7 @@ class _AppDetailScreenState extends State<AppDetailScreen> {
                     OutlinedButton.icon(
                       onPressed: () async {
                         final uri = Uri.parse(app.appStoreUrl!);
+                        await AdService.instance.showInterstitial();
                         if (await canLaunchUrl(uri)) {
                           await launchUrl(
                             uri,

@@ -33,6 +33,24 @@ class CacheService {
     }
   }
 
+  /// Whether [cacheKey] was written within [maxAge]. Used to skip redundant
+  /// background refreshes when the cache is already fresh (e.g. re-entering a
+  /// detail screen within a minute).
+  bool isFresh(String cacheKey, Duration maxAge) {
+    final stored = _cacheBox.get('${cacheKey}_updated_at') as String?;
+    if (stored == null) return false;
+    final updated = DateTime.tryParse(stored);
+    if (updated == null) return false;
+    return DateTime.now().difference(updated) < maxAge;
+  }
+
+  /// Write a JSON-encodable value to the cache and stamp it with a freshness
+  /// marker. Pair with [isFresh] to gate redundant fetches.
+  Future<void> putCache(String cacheKey, dynamic jsonEncodable) async {
+    await _cacheBox.put(cacheKey, jsonEncode(jsonEncodable));
+    await _cacheBox.put('${cacheKey}_updated_at', DateTime.now().toIso8601String());
+  }
+
   /// Background fetch: try to get fresh data, on success update cache, on failure do nothing.
   /// Returns true if the fetch succeeded, false otherwise.
   Future<bool> tryFetchAndCache<T>({
@@ -102,6 +120,13 @@ class CacheService {
   void clearCache() {
     _cacheBox.clear();
   }
+
+  /// Whether the app has completed at least one full launch. Lets the splash
+  /// skip its branding delay for returning users (cold restart after Android
+  /// killed the process should feel like a resume, not a first launch).
+  bool get hasLaunchedBefore => _cacheBox.get('has_launched_before') == true;
+
+  Future<void> markLaunched() => _cacheBox.put('has_launched_before', true);
 
   // Tracking reported reviews to hide report button
   void markReviewAsReported(String reviewId) {

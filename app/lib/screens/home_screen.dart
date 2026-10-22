@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:provider/provider.dart';
@@ -30,12 +31,13 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   List<CategoryModel> _categories = [];
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       context.read<AppProvider>().loadHomeData();
@@ -52,6 +54,23 @@ class _HomeScreenState extends State<HomeScreen> {
         };
       } catch (_) {}
     });
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    if (state == AppLifecycleState.resumed) {
+      // Diagnose cold-start vs warm-resume: timestamps tell us whether the
+      // process was killed while in background (a large gap means Android
+      // restarted us and every load below is a fresh first-frame call).
+      debugPrint('[lifecycle] HomeScreen resumed at ${DateTime.now()}');
+    }
   }
 
   Future<void> _loadCategories({bool forceRefresh = false}) async {

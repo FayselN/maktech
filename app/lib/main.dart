@@ -24,18 +24,19 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await Future.wait([
-    Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform),
-    CacheService().init(),
-    ApiService().init(),
-    MobileAds.instance.initialize(),
-  ]);
+  // Critical path: Hive only — it's local and required to paint cached UI
+  // on the very first frame (offline cold start must not block here).
+  await CacheService().init();
 
-  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-
-  // UMP consent must finish before any ad is requested (Phase 3 flow).
-  await AdService.instance.requestConsent();
-  unawaited(AdService.instance.preloadInterstitial());
+  // Deferred: none of these may gate the first frame.
+  // - Supabase: initialize restores the persisted GoTrue session, which
+  //   hangs offline when the token is expired; ApiService.init now times
+  //   out and retries in the background, and requests wait for it lazily.
+  // - Firebase: messaging/remote config, slowest of the bunch
+  // - MobileAds + consent: only needed before the first ad, not the first frame
+  // - Preloading the interstitial: kicks off its own consent-wait loop
+  unawaited(ApiService().init());
+  unawaited(_deferredFirebaseAndAds());
 
   runApp(
     MultiProvider(
@@ -48,6 +49,23 @@ void main() async {
       child: const MakTechApp(),
     ),
   );
+}
+
+/// Set up Firebase + AdMob after the first frame so they don't add to startup
+/// latency. Consent is still required before the first ad request, but the
+/// interstitial's own load callback handles that — it polls
+/// [AdService.preloadInterstitial] until consent is available.
+Future<void> _deferredFirebaseAndAds() async {
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+    await MobileAds.instance.initialize();
+  } catch (e) {
+    debugPrint('[startup] deferred init failed: $e');
+  }
+  unawaited(AdService.instance.preloadInterstitial());
 }
 
 class MakTechApp extends StatelessWidget {

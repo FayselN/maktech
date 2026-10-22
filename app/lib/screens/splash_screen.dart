@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../services/cache_service.dart';
 import '../services/notification_service.dart';
 import 'main_screen.dart';
 
@@ -18,9 +19,23 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _init() async {
-    await NotificationService().init();
+    // Notifications must not gate the splash: init is fire-and-forget so the
+    // FCM permission prompt + backend register happen in the background while
+    // the user already sees the app.
+    NotificationService().init();
 
-    await Future.delayed(const Duration(milliseconds: 1500));
+    final cache = CacheService();
+    // Branding delay only on the very first launch. A cold restart after
+    // Android killed the process should land on the (already cached) home
+    // screen immediately, not replay the splash.
+    if (!cache.hasLaunchedBefore) {
+      await Future.delayed(const Duration(milliseconds: 800));
+      await cache.markLaunched();
+    }
+    // Never navigate synchronously from initState: with no delay above,
+    // pushReplacement would run inside the navigator's build lock and trip
+    // the '_debugLocked is not true' assertion. endOfFrame defers past it.
+    await WidgetsBinding.instance.endOfFrame;
     if (!mounted) return;
     Navigator.pushReplacement(
       context,
